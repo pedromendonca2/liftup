@@ -1,50 +1,80 @@
-# Welcome to your Expo app 👋
+# Documentação do LiftUp
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+      [ ] Diagrama de classes do domínio do problema;
+      [x] Ferramentas escolhidas (Git, build, testes, issue tracking, CI/CD, container);
+      [?] Frameworks reutilizados;
+      [x] Como gerar a documentação do código (ex.: JavaDoc);
+      [x] Como executar o sistema.
 
-## Get started
+# LiftUp [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/facebook/react/blob/main/LICENSE)
 
-1. Install dependencies
+## Diagrama de classes do domínio
+> ![Diagrama de classes](./docs/diagrama-classes.png)
+
+## Ferramentas escolhidas
+- **Git & GitHub** – Controle de versão e hospedagem do código. Ideal para colaboração e CI/CD.
+- **TypeScript** – Tipagem estática para JavaScript, melhorando manutenção e evitando bugs.
+- **ESLint + eslint-config-expo** – Ferramentas de linting para manter a qualidade e padrão do código.
+- **Expo CLI** – Utilitário para build, preview e gerenciamento de pacotes.
+- **TypeDoc** – Gera documentação automática a partir de comentários no código TypeScript.
+
+## Frameworks reutilizados
+- **React Native** – Base do app mobile. Permite desenvolver para Android, iOS e Web com o mesmo código.
+- **Expo** – Framework que abstrai a complexidade do React Native puro. Facilita o build, preview e uso de APIs nativas.
+- **Expo Router** – Framework de roteamento baseado em arquivos, facilitando a navegação e organização de telas.
+- **React Navigation** – Biblioteca de navegação usada por trás do Expo Router. Permite uso de abas (`bottom-tabs`) e navegação declarativa.
+- **React** – Biblioteca principal para construção de interfaces com componentes.
+- **React Native Gesture Handler** e **Reanimated** – Usadas por baixo para interações fluidas e animações.
+- **Expo Modules** – Bibliotecas da família Expo adicionadas por necessidade ou por padrão:
+  - `expo-font`, `expo-status-bar`, `expo-haptics`, `expo-image`, `expo-splash-screen`, `expo-web-browser`, etc.
+  - A maioria dessas lida com funcionalidades nativas de forma simples (ex: haptics, splash, web browser).
+
+## Como gerar a documentação do código
+O projeto utiliza [TypeDoc](https://typedoc.org/) para gerar documentação automática a partir do código TypeScript.
+
+1. Instale a dependência
+
+   ```bash
+      npm install --save-dev typedoc
+   ```
+
+2. Gere a documentação do código
+   ```bash
+      npm run docs
+   ```
+
+A documentação será gerada na pasta `docs/`, podendo ser visualizada ao abrir o arquivo `docs/index.html`.
+
+## Como executar
+1. Clone o repositório
+
+   ```bash
+   git clone https://github.com/pedromendonca2/liftup.git
+   cd liftup/
+   ```
+
+2. Instale as dependências do projeto
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. Rode o servidor do app
+Após rodar o comando npx expo start, uma aba será aberta no navegador mostrando o QR Code, e também no terminal.
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+Se estiver utilizando WSL (Windows Subsystem for Linux), é recomendável iniciar com tunelamento:
+   ```bash
+   npx expo start --tunnel
+   ```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+4. Abra o app no celular
+   - Instale o app Expo Go no seu celular
+   - Escaneie o QR Code
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Licença
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+LiftUp é licenciado por [MIT LICENSE](./LICENSE).
