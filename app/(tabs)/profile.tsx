@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { Redirect } from 'expo-router';
-import { Platform, StyleSheet } from 'react-native';
+import { Alert, Platform, StyleSheet, TouchableOpacity } from 'react-native';
 
 import { Collapsible } from '@/components/Collapsible';
 import { ExternalLink } from '@/components/ExternalLink';
@@ -8,15 +8,34 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function TabTwoScreen() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
 
   // Se não estiver autenticado, redireciona para login
   if (!isAuthenticated) {
     return <Redirect href="/login" />;
   }
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Sair',
+      'Tem certeza que deseja sair?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Sair', 
+          style: 'destructive', 
+          onPress: logout
+        },
+      ]
+    );
+  };
 
   return (
     <ParallaxScrollView
@@ -37,7 +56,7 @@ export default function TabTwoScreen() {
         <ThemedText>
           This app has two screens:{' '}
           <ThemedText type="defaultSemiBold">app/(tabs)/home.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/perfil.tsx</ThemedText>
+          <ThemedText type="defaultSemiBold">app/(tabs)/profile.tsx</ThemedText>
         </ThemedText>
         <ThemedText>
           The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
@@ -101,6 +120,16 @@ export default function TabTwoScreen() {
           ),
         })}
       </Collapsible>
+
+      <ThemedView style={styles.logoutContainer}>
+        <TouchableOpacity 
+          style={[styles.logoutButton, { backgroundColor: colors.tint }]}
+          onPress={handleLogout}
+        >
+          <ThemedText style={styles.logoutButtonText}>Sair</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+
     </ParallaxScrollView>
   );
 }
@@ -115,5 +144,20 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     gap: 8,
+  },
+  logoutContainer: {
+    marginTop: 30,
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+  logoutButton: {
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  logoutButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
