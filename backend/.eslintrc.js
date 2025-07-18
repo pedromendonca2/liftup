@@ -1,0 +1,35 @@
+module.exports = {
+    env: {
+        node: true,
+        es2021: true,
+        jest: true,
+    },
+    extends: [
+        'eslint:recommended',
+    ],
+    parserOptions: {
+        ecmaVersion: 12,
+        sourceType: 'module',
+    },
+    rules: {
+        'no-console': 'off',
+        'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+        'prefer-const': 'error',
+        'no-var': 'error',
+        'no-undef': 'error',
+        'no-unreachable': 'error',
+        'no-constant-condition': 'error',
+        'no-dupe-args': 'error',
+        'no-dupe-keys': 'error',
+        'no-duplicate-case': 'error',
+        'no-empty': 'error',
+        'no-extra-semi': 'error',
+        'no-func-assign': 'error',
+        'no-invalid-regexp': 'error',
+        'no-irregular-whitespace': 'error',
+        'no-obj-calls': 'error',
+        'no-sparse-arrays': 'error',
+        'no-unexpected-multiline': 'error',
+        'valid-typeof': 'error',
+    },
+}; 

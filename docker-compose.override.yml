@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  backend-dev:
+    environment:
+      NODE_ENV: development
+      DEBUG: "*"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - /app/coverage
+    command: npm run dev
+
+  postgres:
+    environment:
+      POSTGRES_LOG_STATEMENT: all
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/prisma:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_data: 
