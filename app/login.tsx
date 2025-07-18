@@ -1,28 +1,32 @@
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useRouter } from 'expo-router';
+import { Redirect } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, isAuthenticated } = useAuth();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const router = useRouter();
+
+  // Se já estiver autenticado, redireciona para as abas
+  if (isAuthenticated) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -32,14 +36,13 @@ export default function LoginScreen() {
 
     const success = await login(email, password);
     
-    if (success) {
-      router.replace('/(tabs)/home');
-    } else {
+    if (!success) {
       Alert.alert(
         'Erro de Login', 
         'Credenciais inválidas.\n\nUse:\nEmail: admin\nSenha: admin'
       );
     }
+    // O redirecionamento será automático via o check de isAuthenticated
   };
 
   const styles = StyleSheet.create({
@@ -64,13 +67,6 @@ export default function LoginScreen() {
       color: colors.text,
       textAlign: 'center',
       marginBottom: 40,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: colors.text,
-      textAlign: 'center',
-      marginBottom: 30,
-      opacity: 0.7,
     },
     inputContainer: {
       marginBottom: 20,
@@ -104,23 +100,6 @@ export default function LoginScreen() {
     },
     buttonDisabled: {
       opacity: 0.6,
-    },
-    credentialsHint: {
-      marginTop: 30,
-      padding: 15,
-      backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : '#f0f0f0',
-      borderRadius: 8,
-    },
-    credentialsTitle: {
-      fontSize: 14,
-      fontWeight: 'bold',
-      color: colors.text,
-      marginBottom: 5,
-    },
-    credentialsText: {
-      fontSize: 12,
-      color: colors.text,
-      opacity: 0.8,
     },
   });
 

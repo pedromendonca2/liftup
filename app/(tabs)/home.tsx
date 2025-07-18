@@ -1,8 +1,7 @@
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { Alert, Platform, StyleSheet, TouchableOpacity } from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -11,12 +10,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function HomeScreen() {
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
 
-  const handleLogout = async () => {
+  // Se não estiver autenticado, redireciona para login
+  if (!isAuthenticated) {
+    return <Redirect href="/login" />;
+  }
+
+  const handleLogout = () => {
     Alert.alert(
       'Sair',
       'Tem certeza que deseja sair?',
@@ -25,10 +29,7 @@ export default function HomeScreen() {
         { 
           text: 'Sair', 
           style: 'destructive', 
-          onPress: async () => {
-            await logout();
-            router.replace('/login');
-          }
+          onPress: logout
         },
       ]
     );
