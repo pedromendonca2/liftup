@@ -8,8 +8,8 @@
 
 # LiftUp [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/facebook/react/blob/main/LICENSE)
 
-## Diagrama de classes do domínio
-> ![Diagrama de classes](./docs/diagrama-classes.png)
+## Diagrama UML
+> ![Diagrama de classes](./docs/diagrama-UML.png)
 
 ## Ferramentas escolhidas
 - **Git & GitHub** – Controle de versão e hospedagem do código. Ideal para colaboração e CI/CD.
