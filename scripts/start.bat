@@ -40,9 +40,11 @@ if errorlevel 1 (
 echo ✅ Backend está pronto!
 
 REM Instalar dependências do frontend se necessário
-if not exist "node_modules" (
+if not exist "frontend\node_modules" (
     echo 📦 Instalando dependências do frontend...
+    cd frontend
     call npm install
+    cd ..
 )
 
 echo 📱 Iniciando frontend...
@@ -52,6 +54,7 @@ echo - PgAdmin: http://localhost:8080
 echo - Frontend: Será aberto automaticamente
 
 REM Iniciar frontend
+cd frontend
 call npx expo start
 
 echo 🛑 Ambiente parado

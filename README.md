@@ -35,15 +35,17 @@ O projeto utiliza [TypeDoc](https://typedoc.org/) para gerar documentação auto
 1. Instale a dependência
 
    ```bash
+      cd frontend
       npm install --save-dev typedoc
    ```
 
 2. Gere a documentação do código
    ```bash
+      cd frontend
       npm run docs
    ```
 
-A documentação será gerada na pasta `docs/`, podendo ser visualizada ao abrir o arquivo `docs/index.html`.
+A documentação será gerada na pasta `frontend/docs/`, podendo ser visualizada ao abrir o arquivo `frontend/docs/index.html`.
 
 ## Como executar
 
@@ -55,16 +57,23 @@ A documentação será gerada na pasta `docs/`, podendo ser visualizada ao abrir
 ### Estrutura do Projeto
 ```
 liftup/
-├── app/                    # Frontend React Native (Expo)
-├── backend/               # API Node.js + Express
-│   ├── src/
-│   │   ├── routes/        # Rotas da API
-│   │   ├── middleware/    # Middlewares
-│   │   ├── lib/          # Bibliotecas (Prisma)
-│   │   └── test/         # Testes
-│   ├── prisma/           # Schema e migrações do banco
+├── frontend/              # Frontend React Native (Expo)
+│   ├── app/              # Páginas e rotas
+│   ├── components/       # Componentes reutilizáveis
+│   ├── services/         # Serviços de API
+│   ├── contexts/         # Contextos React
+│   ├── hooks/           # Hooks customizados
+│   ├── constants/       # Constantes
+│   ├── assets/          # Imagens e fontes
 │   └── package.json
-├── services/             # Serviços do frontend
+├── backend/              # API Node.js + Express
+│   ├── src/
+│   │   ├── routes/       # Rotas da API
+│   │   ├── middleware/   # Middlewares
+│   │   ├── lib/         # Bibliotecas (Prisma)
+│   │   └── test/        # Testes
+│   ├── prisma/          # Schema e migrações do banco
+│   └── package.json
 ├── scripts/              # Scripts de automação
 ├── docs/                 # Documentação
 ├── docker-compose.yml    # Containers de desenvolvimento
@@ -98,6 +107,7 @@ liftup/
    - Instalar dependências do backend
    - Executar migrações do Prisma
    - Popular o banco com dados iniciais
+   - Instalar dependências do frontend
 
 ### Execução diária
 
@@ -129,16 +139,19 @@ Ou manualmente:
 
 3. Em outro terminal, instalar dependências do frontend (se necessário)
    ```bash
+   cd frontend
    npm install
    ```
 
 4. Iniciar frontend
    ```bash
+   cd frontend
    npx expo start
    ```
 
    Se estiver utilizando WSL, use tunelamento:
    ```bash
+   cd frontend
    npx expo start --tunnel
    ```
 
@@ -178,6 +191,8 @@ npm test
 # Verificar linting
 cd backend
 npm run lint
+cd frontend
+npm run lint
 
 # Gerar documentação da API
 cd backend
@@ -200,6 +215,7 @@ npm run db:studio   # Interface visual do banco
 
 #### Frontend
 ```bash
+cd frontend
 npm install         # Instalar dependências
 npx expo start      # Iniciar servidor de desenvolvimento
 npx expo start --tunnel  # Com tunelamento (WSL)
@@ -248,16 +264,23 @@ make studio        # Abre Prisma Studio
 
 ```
 liftup/
-├── app/                    # Frontend React Native (Expo)
-├── backend/               # API Node.js + Express
-│   ├── src/
-│   │   ├── routes/        # Rotas da API
-│   │   ├── middleware/    # Middlewares
-│   │   ├── lib/          # Bibliotecas (Prisma)
-│   │   └── test/         # Testes
-│   ├── prisma/           # Schema e migrações do banco
+├── frontend/              # Frontend React Native (Expo)
+│   ├── app/              # Páginas e rotas
+│   ├── components/       # Componentes reutilizáveis
+│   ├── services/         # Serviços de API
+│   ├── contexts/         # Contextos React
+│   ├── hooks/           # Hooks customizados
+│   ├── constants/       # Constantes
+│   ├── assets/          # Imagens e fontes
 │   └── package.json
-├── services/             # Serviços do frontend
+├── backend/              # API Node.js + Express
+│   ├── src/
+│   │   ├── routes/       # Rotas da API
+│   │   ├── middleware/   # Middlewares
+│   │   ├── lib/         # Bibliotecas (Prisma)
+│   │   └── test/        # Testes
+│   ├── prisma/          # Schema e migrações do banco
+│   └── package.json
 ├── scripts/              # Scripts de automação
 ├── docs/                 # Documentação
 ├── docker-compose.yml    # Containers de desenvolvimento

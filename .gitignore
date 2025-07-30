@@ -2,6 +2,7 @@
 
 # Dependencies
 node_modules/
+frontend/node_modules/
 npm-debug.*
 yarn-debug.log*
 yarn-error.log*
@@ -70,3 +71,4 @@ Thumbs.db
 
 # Example files
 app-example
+frontend-example

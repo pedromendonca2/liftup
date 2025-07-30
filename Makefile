@@ -14,6 +14,7 @@ setup: ## Configura o ambiente inicial
 	cd backend && npx prisma generate
 	cd backend && npx prisma db push
 	cd backend && npm run db:seed
+	cd frontend && npm install
 	@echo "✅ Setup concluído!"
 
 start: ## Inicia o ambiente de desenvolvimento
@@ -39,6 +40,7 @@ test: ## Executa testes
 lint: ## Executa linting
 	@echo "🔍 Executando linting..."
 	cd backend && npm run lint
+	cd frontend && npm run lint
 
 build: ## Constrói imagens Docker
 	@echo "🔨 Construindo imagens..."
@@ -75,6 +77,6 @@ studio: ## Abre Prisma Studio
 
 install-deps: ## Instala dependências
 	@echo "📦 Instalando dependências..."
-	npm install
+	cd frontend && npm install
 	cd backend && npm install
 	@echo "✅ Dependências instaladas!" 

@@ -72,13 +72,22 @@ call npm run db:seed
 
 cd ..
 
+REM Configurar frontend
+echo 📱 Configurando frontend...
+cd frontend
+
+REM Instalar dependências
+echo 📦 Instalando dependências do frontend...
+call npm install
+
+cd ..
+
 echo.
 echo 🎉 Setup concluído com sucesso!
 echo.
 echo 📋 Próximos passos:
 echo 1. Iniciar o backend: cd backend ^&^& npm run dev
-echo 2. Instalar dependências do frontend: npm install
-echo 3. Iniciar o frontend: npx expo start
+echo 2. Iniciar o frontend: cd frontend ^&^& npx expo start
 echo.
 echo 🔗 URLs importantes:
 echo - Backend API: http://localhost:3001

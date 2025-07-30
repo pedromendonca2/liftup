@@ -37,9 +37,11 @@ done
 echo "✅ Backend está pronto!"
 
 # Instalar dependências do frontend se necessário
-if [ ! -d "node_modules" ]; then
+if [ ! -d "frontend/node_modules" ]; then
     echo "📦 Instalando dependências do frontend..."
+    cd frontend
     npm install
+    cd ..
 fi
 
 echo "📱 Iniciando frontend..."
@@ -49,6 +51,7 @@ echo "- PgAdmin: http://localhost:8080"
 echo "- Frontend: Será aberto automaticamente"
 
 # Iniciar frontend
+cd frontend
 npx expo start
 
 # Limpeza ao sair

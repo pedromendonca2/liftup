@@ -2,7 +2,7 @@
 
 /**
  * This script is used to reset the project to a blank state.
- * It deletes or moves the /app, /components, /hooks, /scripts, and /constants directories to /app-example based on user input and creates a new /app directory with an index.tsx and _layout.tsx file.
+ * It deletes or moves the frontend directories to /frontend-example based on user input and creates a new /frontend directory with an app/index.tsx and app/_layout.tsx file.
  * You can remove the `reset-project` script from package.json and safely delete this file after running it.
  */
 
@@ -11,9 +11,9 @@ const path = require("path");
 const readline = require("readline");
 
 const root = process.cwd();
-const oldDirs = ["app", "components", "hooks", "constants", "scripts"];
-const exampleDir = "app-example";
-const newAppDir = "app";
+const oldDirs = ["frontend"];
+const exampleDir = "frontend-example";
+const newFrontendDir = "frontend";
 const exampleDirPath = path.join(root, exampleDir);
 
 const indexContent = `import { Text, View } from "react-native";
@@ -27,7 +27,7 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
+      <Text>Edit frontend/app/index.tsx to edit this screen.</Text>
     </View>
   );
 }
@@ -40,6 +40,31 @@ export default function RootLayout() {
 }
 `;
 
+const packageJsonContent = `{
+  "name": "liftup",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "expo lint"
+  },
+  "dependencies": {
+    "expo": "~53.0.17",
+    "expo-router": "~5.1.3",
+    "react": "19.0.0",
+    "react-native": "0.79.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~19.0.10",
+    "typescript": "~5.8.3"
+  },
+  "private": true
+}`;
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -48,12 +73,12 @@ const rl = readline.createInterface({
 const moveDirectories = async (userInput) => {
   try {
     if (userInput === "y") {
-      // Create the app-example directory
+      // Create the frontend-example directory
       await fs.promises.mkdir(exampleDirPath, { recursive: true });
       console.log(`📁 /${exampleDir} directory created.`);
     }
 
-    // Move old directories to new app-example directory or delete them
+    // Move old directories to new frontend-example directory or delete them
     for (const dir of oldDirs) {
       const oldDirPath = path.join(root, dir);
       if (fs.existsSync(oldDirPath)) {
@@ -70,27 +95,36 @@ const moveDirectories = async (userInput) => {
       }
     }
 
-    // Create new /app directory
-    const newAppDirPath = path.join(root, newAppDir);
-    await fs.promises.mkdir(newAppDirPath, { recursive: true });
-    console.log("\n📁 New /app directory created.");
+    // Create new /frontend directory
+    const newFrontendDirPath = path.join(root, newFrontendDir);
+    await fs.promises.mkdir(newFrontendDirPath, { recursive: true });
+    console.log("\n📁 New /frontend directory created.");
+
+    // Create app directory
+    const appDirPath = path.join(newFrontendDirPath, "app");
+    await fs.promises.mkdir(appDirPath, { recursive: true });
+    console.log("📁 frontend/app directory created.");
 
     // Create index.tsx
-    const indexPath = path.join(newAppDirPath, "index.tsx");
+    const indexPath = path.join(appDirPath, "index.tsx");
     await fs.promises.writeFile(indexPath, indexContent);
-    console.log("📄 app/index.tsx created.");
+    console.log("📄 frontend/app/index.tsx created.");
 
     // Create _layout.tsx
-    const layoutPath = path.join(newAppDirPath, "_layout.tsx");
+    const layoutPath = path.join(appDirPath, "_layout.tsx");
     await fs.promises.writeFile(layoutPath, layoutContent);
-    console.log("📄 app/_layout.tsx created.");
+    console.log("📄 frontend/app/_layout.tsx created.");
+
+    // Create package.json
+    const packageJsonPath = path.join(newFrontendDirPath, "package.json");
+    await fs.promises.writeFile(packageJsonPath, packageJsonContent);
+    console.log("📄 frontend/package.json created.");
 
     console.log("\n✅ Project reset complete. Next steps:");
     console.log(
-      `1. Run \`npx expo start\` to start a development server.\n2. Edit app/index.tsx to edit the main screen.${
-        userInput === "y"
-          ? `\n3. Delete the /${exampleDir} directory when you're done referencing it.`
-          : ""
+      `1. Run \`cd frontend && npx expo start\` to start a development server.\n2. Edit frontend/app/index.tsx to edit the main screen.${userInput === "y"
+        ? `\n3. Delete the /${exampleDir} directory when you're done referencing it.`
+        : ""
       }`
     );
   } catch (error) {
@@ -99,7 +133,7 @@ const moveDirectories = async (userInput) => {
 };
 
 rl.question(
-  "Do you want to move existing files to /app-example instead of deleting them? (Y/n): ",
+  "Do you want to move existing files to /frontend-example instead of deleting them? (Y/n): ",
   (answer) => {
     const userInput = answer.trim().toLowerCase() || "y";
     if (userInput === "y" || userInput === "n") {
