@@ -1,0 +1,24 @@
+{
+    "recommendations": [
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ms-vscode.vscode-json",
+        "prisma.prisma",
+        "ms-vscode.vscode-node-azure-pack",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode.vscode-github-issue-notebooks",
+        "ms-vscode.vscode-jest",
+        "ms-vscode.vscode-jest-runner",
+        "ms-vscode.vscode-npm-script",
+        "ms-vscode.vscode-typescript-next",
+        "ms-vscode.vscode-json",
+        "ms-vscode.vscode-markdown",
+        "ms-vscode.vscode-yaml",
+        "ms-vscode.vscode-xml",
+        "ms-vscode.vscode-css",
+        "ms-vscode.vscode-html"
+    ]
+}
