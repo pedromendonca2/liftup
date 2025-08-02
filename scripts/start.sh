@@ -52,7 +52,7 @@ echo "- Frontend: Será aberto automaticamente"
 
 # Iniciar frontend
 cd frontend
-npx expo start
+npx expo start --tunnel
 
 # Limpeza ao sair
 trap "echo '🛑 Parando backend...'; kill $BACKEND_PID; echo '✅ Ambiente parado'; exit" INT 

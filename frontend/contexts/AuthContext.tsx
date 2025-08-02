@@ -1,11 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { apiService } from '../services/api';
 
 type User = {
   id: string;
   email: string;
   name: string;
 };
+type AuthResponse = { token: string; user: User };
+type MeResponse = { user: User };
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -17,8 +20,6 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const API_BASE_URL = 'http://localhost:3001/api';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,24 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const token = await AsyncStorage.getItem('authToken');
       if (token) {
-        const response = await fetch(`${API_BASE_URL}/auth/me`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
-          setIsAuthenticated(true);
-        } else {
-          // Token inválido, remover do storage
-          await AsyncStorage.removeItem('authToken');
-        }
+        const data = await apiService.getMe() as MeResponse;
+        setUser(data.user);
+        setIsAuthenticated(true);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Erro ao verificar status de autenticação:', error);
+      await AsyncStorage.removeItem('authToken');
     } finally {
       setIsLoading(false);
     }
@@ -59,29 +49,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        await AsyncStorage.setItem('authToken', data.token);
-        setUser(data.user);
-        setIsAuthenticated(true);
-        return true;
-      } else {
-        console.error('Erro no login:', data.error);
-        return false;
-      }
-    } catch (error) {
-      console.error('Erro na requisição de login:', error);
+      const data = await apiService.login(email, password) as AuthResponse;
+      await AsyncStorage.setItem('authToken', data.token);
+      setUser(data.user);
+      setIsAuthenticated(true);
+      return true;
+    } catch (error: unknown) {
+      console.error('Erro no login:', error);
+      console.error('Tipo do erro:', (error as Error).name);
+      console.error('Mensagem:', (error as Error).message);
+      console.error('Stack:', (error as Error).stack);
       return false;
     } finally {
       setIsLoading(false);
@@ -90,29 +68,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (email: string, password: string, name: string): Promise<boolean> => {
     setIsLoading(true);
-
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password, name })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        await AsyncStorage.setItem('authToken', data.token);
-        setUser(data.user);
-        setIsAuthenticated(true);
-        return true;
-      } else {
-        console.error('Erro no registro:', data.error);
-        return false;
-      }
-    } catch (error) {
-      console.error('Erro na requisição de registro:', error);
+      const data = await apiService.register(email, password, name) as AuthResponse;
+      await AsyncStorage.setItem('authToken', data.token);
+      setUser(data.user);
+      setIsAuthenticated(true);
+      return true;
+    } catch (error: unknown) {
+      console.error('Erro no registro:', error);
+      console.error('Tipo do erro:', (error as Error).name);
+      console.error('Mensagem:', (error as Error).message);
+      console.error('Stack:', (error as Error).stack);
       return false;
     } finally {
       setIsLoading(false);
@@ -124,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await AsyncStorage.removeItem('authToken');
       setUser(null);
       setIsAuthenticated(false);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Erro ao fazer logout:', error);
     }
   };
