@@ -21,7 +21,7 @@ const EXPO_GO_URLS = [
 
 // URLs para dispositivos físicos (priorizar LAN)
 const PHYSICAL_DEVICE_URLS = [
-  'http://192.168.1.2:8080/api',  // Windows LAN IP
+  'http://192.168.1.2:3001/api',  // Windows LAN IP
   'http://192.168.1.2:3001/api',
   'http://172.20.173.132:8080/api',  // WSL IP as fallback
   'http://172.20.173.132:3001/api',
@@ -42,7 +42,7 @@ const getApiBaseUrl = () => {
   }
   // Priorizar dispositivos físicos com IP local
   if (isPhysicalDevice()) {
-    return 'http://192.168.1.2:8080/api';
+    return 'http://192.168.1.2:3001/api';
   }
   // Para Expo Go em emulador, usar 10.0.2.2
   if (isExpoGo()) {
