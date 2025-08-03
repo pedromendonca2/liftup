@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native'; // Platform foi importado
+import { ActivityIndicator, View } from 'react-native'; // Platform foi importado
 
 // Tipos para o contexto e para o retorno da função de login
 type AuthContextType = {
@@ -17,14 +17,17 @@ type LoginResult = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// URL da sua API backend (verifique se está correta para o emulador/dispositivo)
-const YOUR_NETWORK_IP = '192.168.0.12'; // <-- ATUALIZADO COM SEU IP
-const API_PORT = 3000; // A porta que você expôs no docker-compose.yml
+// A URL agora é lida a partir das variáveis de ambiente do Expo.
+// Certifique-se de que seu arquivo .env na raiz do frontend contém a linha:
+// EXPO_PUBLIC_API_URL=http://SEU_IP_DE_REDE:3000
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-// Para o iOS Simulator, 'localhost' funciona. Para Android e dispositivos físicos, o IP da rede é necessário.
-const API_URL = Platform.OS === 'ios' 
-    ? `http://localhost:${API_PORT}` 
-    : `http://${YOUR_NETWORK_IP}:${API_PORT}`;
+// Validação para garantir que a variável de ambiente foi definida.
+if (!API_URL) {
+  throw new Error(
+    'A variável de ambiente EXPO_PUBLIC_API_URL não está definida. Por favor, crie um arquivo .env na pasta do frontend e adicione a URL da sua API.'
+  );
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);

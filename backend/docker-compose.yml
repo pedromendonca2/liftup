@@ -1,7 +1,6 @@
 # -----------------------------------------------------------------------------
 # Docker Compose para o ambiente de desenvolvimento LiftUp
 # -----------------------------------------------------------------------------
-version: '3.8'
 
 services:
   # --- Serviço do Banco de Dados PostgreSQL ---
