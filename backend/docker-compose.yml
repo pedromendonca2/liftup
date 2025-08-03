@@ -1,0 +1,46 @@
+# -----------------------------------------------------------------------------
+# Docker Compose para o ambiente de desenvolvimento LiftUp
+# -----------------------------------------------------------------------------
+version: '3.8'
+
+services:
+  # --- Serviço do Banco de Dados PostgreSQL ---
+  db:
+    image: postgres:15-alpine  # Usamos uma imagem leve do Postgres
+    container_name: liftup-database
+    restart: always
+    environment:
+      # Defina as credenciais do seu banco de dados.
+      # O backend usará essas mesmas credenciais para se conectar.
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: funcionaPelaAmorDeDeus
+      POSTGRES_DB: liftup_db
+    ports:
+      # Mapeia a porta 5432 do contêiner para a porta 5432 da sua máquina
+      # Assim, você pode usar ferramentas como DBeaver ou PgAdmin para se conectar
+      - "5432:5432"
+    volumes:
+      # Este volume garante que seus dados do banco não sejam perdidos
+      # quando você parar ou remover o contêiner.
+      - postgres_data:/var/lib/postgresql/data
+
+  # --- Serviço do Backend Node.js ---
+  backend:
+    build: .  # Constrói a imagem usando o Dockerfile na pasta atual
+    container_name: liftup-backend
+    restart: always
+    ports:
+      # Mapeia a porta 3000 do contêiner para a porta 3000 da sua máquina
+      - "3000:3000"
+      - "5555:5555"
+    environment:
+      # A URL de conexão que o Prisma usará.
+      # Note que o host é 'db', o nome do serviço do banco de dados definido acima.
+      DATABASE_URL: "postgresql://postgres:funcionaPelaAmorDeDeus@db:5432/liftup_db?schema=public" # <-- USE A MESMA SENHA
+      JWT_SECRET: "uma_chave_bem_secreta_aqui"
+    depends_on:
+      - db  # Garante que o contêiner do 'db' inicie antes do 'backend'
+
+# Define o volume que será usado pelo serviço 'db'
+volumes:
+  postgres_data:
