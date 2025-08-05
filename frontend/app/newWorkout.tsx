@@ -6,6 +6,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Alert,
+  FlatList,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -20,6 +21,16 @@ export default function NewWorkoutScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+
+  // Tipo para equipamento
+  interface Equipment {
+    name: string;
+    load: string;
+    id: string;
+  }
+
+  // Estado para lista de equipamentos salvos
+  const [equipments, setEquipments] = useState<Equipment[]>([]);
 
   // Lista completa de equipamentos de academia
   const workoutTypes = [
@@ -115,22 +126,31 @@ export default function NewWorkoutScreen() {
     const selectedType = workoutTypes.find(type => type.value === selectedWorkoutType);
     const equipmentName = selectedType ? selectedType.label : selectedWorkoutType;
 
-    // Aqui você implementaria a lógica para salvar o treino
-    Alert.alert(
-      'Treino Criado!', 
-      `Treino com ${equipmentName} e carga de ${workoutLoad}kg foi criado com sucesso!`,
-      [
-        {
-          text: 'OK',
-          onPress: () => router.back()
-        }
-      ]
-    );
+    // Cria novo equipamento
+    const newEquipment: Equipment = {
+      id: Date.now().toString(), // ID único baseado no timestamp
+      name: equipmentName,
+      load: workoutLoad
+    };
+
+    // Adiciona o equipamento à lista
+    setEquipments(prevEquipments => [...prevEquipments, newEquipment]);
+
+    Alert.alert('Equipamento adicionado!');
+    
+    // Limpa os campos após salvar
+    setSelectedWorkoutType('');
+    setWorkoutLoad('');
   };
 
   // Função para verificar se o formulário está válido
   const isFormValid = () => {
     return selectedWorkoutType !== '' && workoutLoad.trim() !== '';
+  };
+
+  // Função para remover equipamento
+  const removeEquipment = (id: string) => {
+    setEquipments(prevEquipments => prevEquipments.filter(equipment => equipment.id !== id));
   };
 
   const styles = StyleSheet.create({
@@ -192,7 +212,8 @@ export default function NewWorkoutScreen() {
     buttonContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginTop: 30,
+      marginTop: 20,
+      marginBottom: 20,
     },
     button: {
       flex: 1,
@@ -216,6 +237,57 @@ export default function NewWorkoutScreen() {
       fontSize: 16,
       fontWeight: 'bold',
     },
+    flatListTitle: {
+      fontSize: 18,
+      color: colors.text,
+      marginBottom: 5,
+      fontWeight: '600',
+    },
+    flatListItem: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.icon,
+      backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : '#f9f9f9',
+      marginBottom: 2,
+      borderRadius: 6,
+    },
+    flatListItemText: {
+      fontSize: 14,
+      color: colors.text,
+    },
+    emptyContainer: {
+      padding: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.icon,
+      fontStyle: 'italic',
+    },
+    equipmentListSection: {
+      marginTop: 10,
+    },
+    equipmentItemContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    removeButton: {
+      backgroundColor: '#ff4444',
+      borderRadius: 12,
+      width: 24,
+      height: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginLeft: 10,
+    },
+    removeButtonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: 'bold',
+      lineHeight: 20,
+    },
   });
 
   return (
@@ -231,7 +303,7 @@ export default function NewWorkoutScreen() {
           <ThemedText style={styles.headerTitle}>Novo Treino</ThemedText>
         </View>
 
-        {/* Conteúdo */}
+        {/* Conteúdo unificado */}
         <ScrollView style={styles.content}>
           <View style={styles.inputContainer}>
             <ThemedText style={styles.label}>Equipamento</ThemedText>
@@ -265,18 +337,6 @@ export default function NewWorkoutScreen() {
             />
           </View>
 
-          {/* <View style={styles.inputContainer}>
-            <ThemedText style={styles.label}>Descrição (Opcional)</ThemedText>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={workoutDescription}
-              onChangeText={setWorkoutDescription}
-              placeholder="Descreva o treino..."
-              placeholderTextColor={colors.icon}
-              multiline
-            />
-          </View> */}
-
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
               style={[styles.button, styles.cancelButton]}
@@ -296,7 +356,36 @@ export default function NewWorkoutScreen() {
               <ThemedText style={styles.buttonText}>Adicionar</ThemedText>
             </TouchableOpacity>
           </View>
+
+          {/* Lista de equipamentos dentro do mesmo ScrollView */}
+          <View style={styles.equipmentListSection}>
+            <ThemedText style={styles.flatListTitle}>Equipamentos Salvos ({equipments.length})</ThemedText>
+            {equipments.length > 0 ? (
+              equipments.map((item, index) => (
+                <View key={item.id} style={styles.flatListItem}>
+                  <View style={styles.equipmentItemContent}>
+                    <ThemedText style={styles.flatListItemText}>
+                      {item.name} - {item.load}kg
+                    </ThemedText>
+                    <TouchableOpacity 
+                      style={styles.removeButton}
+                      onPress={() => removeEquipment(item.id)}
+                    >
+                      <ThemedText style={styles.removeButtonText}>×</ThemedText>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <ThemedText style={styles.emptyText}>
+                  Nenhum equipamento salvo ainda
+                </ThemedText>
+              </View>
+            )}
+          </View>
         </ScrollView>
+
       </View>
     </>
   );
