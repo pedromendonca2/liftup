@@ -1,6 +1,6 @@
 # Documentação do LiftUp
 
-      [ ] Diagrama de classes do domínio do problema;
+      [x] Diagrama de classes do domínio do problema;
       [x] Ferramentas escolhidas (Git, build, testes, issue tracking, CI/CD, container);
       [?] Frameworks reutilizados;
       [x] Como gerar a documentação do código (ex.: JavaDoc);
