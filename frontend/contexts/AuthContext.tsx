@@ -1,3 +1,4 @@
+import { RegisterFormData } from '@/types/register';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native'; // Platform foi importado
@@ -7,6 +8,7 @@ type AuthContextType = {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ error: boolean; errorMessage?: string } | null>;
+  register: (data: RegisterFormData) => Promise<any>;
   logout: () => Promise<void>;
 };
 
@@ -87,6 +89,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const register = async (userData: {
+    name: string;
+    email: string;
+    password: string;
+  }) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return { error: true, errorMessage: data.error || 'Erro ao registrar' };
+      }
+      // (Opcional) Login automático após registro:
+      if (data.token) {
+        await AsyncStorage.setItem('authToken', data.token);
+        setIsAuthenticated(true);
+        return null;
+      }
+      return null; // Sucesso, sem login automático
+    } catch (error) {
+      return { error: true, errorMessage: 'Erro de conexão' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     try {
       // Usa AsyncStorage para remover o token
@@ -111,6 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated,
       isLoading,
       login,
+      register,
       logout,
     }}>
       {children}

@@ -14,7 +14,63 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  password String
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   // Essencial para o login
+  name      String
+  age       Int     // Opcional, como sugerido pela ausência no login
+  gender    Gender  // Usando um Enum para clareza
+  height    Float   // Altura em metros (ex: 1.75)
+  weight    Float   // Peso em kg (ex: 70.5)
+  workouts  Workout[] // Relacionamento: um usuário pode ter vários treinos
+}
+
+// Modelo para os Treinos criados pelos usuários
+model Workout {
+  id                  Int                @id @default(autoincrement())
+  name                String
+  description         String?
+  targetMuscleGroup   String?            // "Conjunto muscular alvo"
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  // Relacionamento com o Usuário
+  user                User               @relation(fields: [userId], references: [id])
+  userId              Int
+
+  // Relacionamento com os Exercícios (via tabela de junção)
+  exercises           WorkoutExercise[]
+}
+
+// Modelo para os Exercícios disponíveis
+model Exercise {
+  id            Int                @id @default(autoincrement())
+  name          String             @unique
+  targetMuscle  String?            // "Músculo Alvo"
+  
+  // Relacionamento com os Treinos (via tabela de junção)
+  workouts      WorkoutExercise[]
+}
+
+// Tabela de junção para o relacionamento Muitos-para-Muitos entre Workout e Exercise
+// Permite que um exercício esteja em vários treinos e vice-versa.
+model WorkoutExercise {
+  workout       Workout    @relation(fields: [workoutId], references: [id])
+  workoutId     Int
+  exercise      Exercise   @relation(fields: [exerciseId], references: [id])
+  exerciseId    Int
+  
+  reps          Int        // "Repetições"
+  loadKg        Float      // "CargaKG"
+  isCompleted   Boolean    @default(false) // "Concluído"
+  
+  // Chave primária composta para garantir que cada exercício seja único por treino
+  @@id([workoutId, exerciseId])
+}
+
+
+// Enum para o sexo biológico, mais descritivo que um Boolean
+enum Gender {
+  MASCULINO
+  FEMININO
 }

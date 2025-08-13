@@ -1,0 +1,55 @@
+# Nome do workflow para o frontend
+name: Frontend CI
+
+# Define quando o workflow deve ser executado
+on:
+  # Executa em todo 'push' para a branch 'main'
+  push:
+    branches: [ "main" ]
+    # MAS, apenas se houver alterações na pasta 'frontend'
+    paths:
+      - 'frontend/**'
+  # Também executa em todo Pull Request que tem a 'main' como alvo
+  pull_request:
+    branches: [ "main" ]
+    # E que também tenha alterações na pasta 'frontend'
+    paths:
+      - 'frontend/**'
+
+# Agrupa os trabalhos que o workflow irá executar
+jobs:
+  # Define um trabalho chamado 'build-and-lint'
+  build-and-lint:
+    # O tipo de máquina virtual para executar o trabalho
+    runs-on: ubuntu-latest
+
+    # A sequência de passos do trabalho
+    steps:
+      # 1. Clona o seu repositório para a máquina virtual
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Configura o ambiente Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Verifique a versão no seu frontend/package.json
+
+      # 3. Instala as dependências do frontend
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./frontend # Executa o comando na pasta do frontend
+
+      # 4. Executa o linter para verificar a qualidade do código
+      # Seu projeto já tem um `eslint.config.js`, então é provável que você
+      # tenha um script "lint" no seu package.json. Se não, crie um: "lint": "eslint ."
+      - name: Run linter
+        run: npm run lint --if-present
+        working-directory: ./frontend
+
+      # 5. (Opcional, mas recomendado) Executa testes
+      # Você precisaria configurar um framework de testes como o Jest.
+      # Ex: "test": "jest" no seu package.json
+      # - name: Run tests
+      #   run: npm test
+      #   working-directory: ./frontend

@@ -1,0 +1,51 @@
+# Nome do seu workflow. Aparecerá na aba "Actions" do seu repositório GitHub.
+name: Backend CI
+
+# Define quando o workflow deve ser executado.
+on:
+  # Executa em todo 'push' para a branch 'main'.
+  push:
+    branches: [ "main" ]
+  # Também executa em todo Pull Request que tem a 'main' como alvo.
+  pull_request:
+    branches: [ "main" ]
+
+# Agrupa todos os trabalhos (jobs) que o workflow irá executar.
+jobs:
+  # Define um trabalho chamado 'build'. Você pode dar o nome que quiser.
+  build:
+    # O tipo de máquina virtual para executar o trabalho. 'ubuntu-latest' é uma escolha comum e econômica.
+    runs-on: ubuntu-latest
+
+    # A sequência de passos que o trabalho 'build' irá executar.
+    steps:
+      # 1. Clona o seu repositório para a máquina virtual.
+      # Usa uma ação pré-construída pela comunidade do GitHub.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Configura o ambiente Node.js.
+      # É importante usar a mesma versão que você usa em desenvolvimento.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Verifique a versão no seu package.json
+
+      # 3. Instala as dependências do backend.
+      # O comando 'npm ci' é recomendado para CI, pois usa o package-lock.json para instalações exatas.
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./backend # Executa o comando dentro da pasta do backend
+
+      # 4. (Opcional, mas recomendado) Executa os testes.
+      # Você precisará criar um script "test" no seu `backend/package.json`.
+      # Ex: "test": "jest"
+      # - name: Run tests
+      #   run: npm test
+      #   working-directory: ./backend
+
+      # 5. (Opcional) Executa um build de produção se houver.
+      # Útil se você tiver um passo de compilação (ex: TypeScript para JavaScript).
+      # - name: Build project
+      #   run: npm run build --if-present
+      #   working-directory: ./backend
