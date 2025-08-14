@@ -1,12 +1,13 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
+import { useTreino } from '@/contexts/TreinoContextLocal';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Exercicio } from '@/types/workout';
 import { Picker } from '@react-native-picker/picker';
 import { Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Alert,
-  FlatList,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -16,35 +17,19 @@ import {
 
 export default function NewWorkoutScreen() {
   const [workoutLoad, setWorkoutLoad] = useState('');
-  // const [workoutDescription, setWorkoutDescription] = useState('');
   const [selectedWorkoutType, setSelectedWorkoutType] = useState('');
+  const [treinoName, setTreinoName] = useState('');
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { createNewTreino, isLoading } = useTreino();
 
-  // Tipo para equipamento
-  interface Equipment {
-    name: string;
-    load: string;
-    id: string;
-  }
+  // Estado para lista de exercícios salvos
+  const [exercicios, setExercicios] = useState<Exercicio[]>([]);
 
-  // Estado para lista de equipamentos salvos
-  const [equipments, setEquipments] = useState<Equipment[]>([]);
-
-  // Lista completa de equipamentos de academia
+  // Lista de equipamentos de musculação com carga
   const workoutTypes = [
-    { label: 'Selecione um equipamento', value: '' },
-    
-    // Equipamentos Cardiovasculares
-    { label: 'Bicicleta Ergométrica Vertical', value: 'bike_vertical' },
-    { label: 'Bicicleta Ergométrica Reclinada', value: 'bike_reclinada' },
-    { label: 'Esteira Ergométrica', value: 'esteira' },
-    { label: 'Elíptico (Transport)', value: 'elliptical' },
-    { label: 'Remo Indoor', value: 'remo_indoor' },
-    { label: 'Simulador de Escada', value: 'simulador_escada' },
-    { label: 'Air Bike', value: 'air_bike' },
-    { label: 'Ski Erg', value: 'ski_erg' },
+    { label: 'Selecione um exercício', value: '' },
     
     // Máquinas para Membros Inferiores
     { label: 'Leg Press 45°', value: 'leg_press_45' },
@@ -79,64 +64,43 @@ export default function NewWorkoutScreen() {
     { label: 'Máquina de Rosca Scott', value: 'rosca_scott' },
     { label: 'Graviton (Assistência Barra Fixa)', value: 'graviton' },
     
-    // Máquinas para Core/Abdominal
+    // Máquinas para Core/Abdominal com carga
     { label: 'Máquina de Abdominal (Crunch)', value: 'crunch_machine' },
-    { label: 'Prancha Abdominal', value: 'prancha_abdominal' },
     
-    // Equipamentos Livres
+    // Equipamentos Livres com carga
     { label: 'Máquina Smith (Barra Guiada)', value: 'smith_machine' },
     { label: 'Kettlebells', value: 'kettlebells' },
-    { label: 'Anilhas (Pesos)', value: 'anilhas' },
+    { label: 'Halteres', value: 'halteres' },
     { label: 'Barra Olímpica', value: 'barra_olimpica' },
     { label: 'Barra Reta', value: 'barra_reta' },
     { label: 'Barra W', value: 'barra_w' },
     { label: 'Barra H', value: 'barra_h' },
     { label: 'Barra Romana', value: 'barra_romana' },
-    
-    // Acessórios
-    { label: 'Caneleiras', value: 'caneleiras' },
-    { label: 'Step', value: 'step' },
-    { label: 'Colchonetes', value: 'colchonetes' },
-    { label: 'Bolas de Exercício (Fitball)', value: 'fitball' },
     { label: 'Medicine Ball', value: 'medicine_ball' },
     { label: 'Slam Ball', value: 'slam_ball' },
-    { label: 'Corda de Pular', value: 'corda_pular' },
-    { label: 'Mini Bands', value: 'mini_bands' },
-    { label: 'Power Bands', value: 'power_bands' },
-    { label: 'Caixa de Salto (Plyo Box)', value: 'plyo_box' },
-    { label: 'Roda Abdominal (Ab Wheel)', value: 'ab_wheel' },
-    { label: 'Barras Fixas', value: 'barras_fixas' },
-    { label: 'Barras Paralelas', value: 'barras_paralelas' },
-    { label: 'Anéis de Ginástica', value: 'aneis_ginastica' },
-    { label: 'Corda Naval (Battle Rope)', value: 'battle_rope' },
-    { label: 'Bosu', value: 'bosu' },
     
-    // Equipamentos de Apoio
+    // Equipamentos de Apoio para exercícios com carga
     { label: 'Banco Supino Ajustável', value: 'banco_supino' },
     { label: 'Suporte para Agachamento (Squat Rack)', value: 'squat_rack' },
     { label: 'Power Cage', value: 'power_cage' },
-    { label: 'Suporte para Barras e Anilhas', value: 'suporte_barras' },
-    { label: 'Cinto de Levantamento', value: 'cinto_levantamento' },
-    { label: 'Straps', value: 'straps' },
-    { label: 'Luvas', value: 'luvas' },
   ];
 
   const handleSaveWorkout = () => {
-    // Encontra o nome do equipamento selecionado
+    // Encontra o nome do exercício selecionado
     const selectedType = workoutTypes.find(type => type.value === selectedWorkoutType);
-    const equipmentName = selectedType ? selectedType.label : selectedWorkoutType;
+    const exercicioName = selectedType ? selectedType.label : selectedWorkoutType;
 
-    // Cria novo equipamento
-    const newEquipment: Equipment = {
+    // Cria novo exercício
+    const newExercicio: Exercicio = {
       id: Date.now().toString(), // ID único baseado no timestamp
-      name: equipmentName,
-      load: workoutLoad
+      nome: exercicioName,
+      peso: parseFloat(workoutLoad)
     };
 
-    // Adiciona o equipamento à lista
-    setEquipments(prevEquipments => [...prevEquipments, newEquipment]);
+    // Adiciona o exercício à lista
+    setExercicios(prevExercicios => [...prevExercicios, newExercicio]);
 
-    Alert.alert('Equipamento adicionado!');
+    Alert.alert('Exercício adicionado!');
     
     // Limpa os campos após salvar
     setSelectedWorkoutType('');
@@ -148,9 +112,41 @@ export default function NewWorkoutScreen() {
     return selectedWorkoutType !== '' && workoutLoad.trim() !== '';
   };
 
-  // Função para remover equipamento
-  const removeEquipment = (id: string) => {
-    setEquipments(prevEquipments => prevEquipments.filter(equipment => equipment.id !== id));
+  // Função para verificar se pode criar treino
+  const canCreateTreino = () => {
+    return treinoName.trim() !== '' && exercicios.length > 0;
+  };
+
+  // Função para criar treino completo
+  const handleCreateTreino = async () => {
+    if (!canCreateTreino()) {
+      Alert.alert('Erro', 'Por favor, adicione um nome ao treino e pelo menos um exercício');
+      return;
+    }
+
+    try {
+      const success = await createNewTreino(
+        treinoName || 'Novo Treino',
+        exercicios
+      );
+
+      if (success) {
+        // Limpar formulário e voltar
+        setTreinoName('');
+        setExercicios([]);
+        setSelectedWorkoutType('');
+        setWorkoutLoad('');
+        router.back();
+      }
+    } catch (error) {
+      console.error('Erro ao criar treino:', error);
+      Alert.alert('Erro', 'Erro inesperado ao criar treino');
+    }
+  };
+
+  // Função para remover exercício
+  const removeExercicio = (id: string) => {
+    setExercicios(prevExercicios => prevExercicios.filter(exercicio => exercicio.id !== id));
   };
 
   const styles = StyleSheet.create({
@@ -288,6 +284,21 @@ export default function NewWorkoutScreen() {
       fontWeight: 'bold',
       lineHeight: 20,
     },
+    createTreinoContainer: {
+      marginTop: 20,
+      marginBottom: 20,
+    },
+    createTreinoButton: {
+      backgroundColor: '#28a745',
+    },
+    createTreinoButtonEnabled: {
+      backgroundColor: '#28a745',
+      opacity: 1,
+    },
+    createTreinoButtonDisabled: {
+      backgroundColor: '#6c757d',
+      opacity: 0.7,
+    },
   });
 
   return (
@@ -305,8 +316,20 @@ export default function NewWorkoutScreen() {
 
         {/* Conteúdo unificado */}
         <ScrollView style={styles.content}>
+          {/* Campo para nome do treino */}
           <View style={styles.inputContainer}>
-            <ThemedText style={styles.label}>Equipamento</ThemedText>
+            <ThemedText style={styles.label}>Nome do Treino</ThemedText>
+            <TextInput
+              style={styles.input}
+              value={treinoName}
+              onChangeText={setTreinoName}
+              placeholder="Ex: Peito e Tríceps"
+              placeholderTextColor={colors.icon}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <ThemedText style={styles.label}>Exercício</ThemedText>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={selectedWorkoutType}
@@ -326,12 +349,12 @@ export default function NewWorkoutScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <ThemedText style={styles.label}>Carga</ThemedText>
-              <TextInput
+            <ThemedText style={styles.label}>Peso (kg)</ThemedText>
+            <TextInput
               style={[styles.input, styles.textArea]}
               value={workoutLoad}
               onChangeText={setWorkoutLoad}
-              placeholder="Digite a carga em kg (ex: 20)"
+              placeholder="Digite o peso em kg (ex: 20)"
               placeholderTextColor={colors.icon}
               keyboardType="numeric"
             />
@@ -353,23 +376,23 @@ export default function NewWorkoutScreen() {
               onPress={handleSaveWorkout}
               disabled={!isFormValid()}
             >
-              <ThemedText style={styles.buttonText}>Adicionar</ThemedText>
+              <ThemedText style={styles.buttonText}>Adicionar Exercício</ThemedText>
             </TouchableOpacity>
           </View>
 
-          {/* Lista de equipamentos dentro do mesmo ScrollView */}
+          {/* Lista de exercícios dentro do mesmo ScrollView */}
           <View style={styles.equipmentListSection}>
-            <ThemedText style={styles.flatListTitle}>Equipamentos Salvos ({equipments.length})</ThemedText>
-            {equipments.length > 0 ? (
-              equipments.map((item, index) => (
+            <ThemedText style={styles.flatListTitle}>Exercícios Salvos ({exercicios.length})</ThemedText>
+            {exercicios.length > 0 ? (
+              exercicios.map((item, index) => (
                 <View key={item.id} style={styles.flatListItem}>
                   <View style={styles.equipmentItemContent}>
                     <ThemedText style={styles.flatListItemText}>
-                      {item.name} - {item.load}kg
+                      {item.nome} - {item.peso}kg
                     </ThemedText>
                     <TouchableOpacity 
                       style={styles.removeButton}
-                      onPress={() => removeEquipment(item.id)}
+                      onPress={() => removeExercicio(item.id)}
                     >
                       <ThemedText style={styles.removeButtonText}>×</ThemedText>
                     </TouchableOpacity>
@@ -379,11 +402,31 @@ export default function NewWorkoutScreen() {
             ) : (
               <View style={styles.emptyContainer}>
                 <ThemedText style={styles.emptyText}>
-                  Nenhum equipamento salvo ainda
+                  Nenhum exercício salvo ainda
                 </ThemedText>
               </View>
             )}
           </View>
+
+          {/* Botão para criar treino completo */}
+          {exercicios.length > 0 && (
+            <View style={styles.createTreinoContainer}>
+              <TouchableOpacity 
+                style={[
+                  styles.button, 
+                  styles.createTreinoButton,
+                  canCreateTreino() && !isLoading ? styles.createTreinoButtonEnabled : styles.createTreinoButtonDisabled
+                ]}
+                onPress={handleCreateTreino}
+                disabled={!canCreateTreino() || isLoading}
+              >
+                <ThemedText style={styles.buttonText}>
+                  {isLoading ? 'Criando...' : 'Criar Treino Completo'}
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+          )}
+
         </ScrollView>
 
       </View>
