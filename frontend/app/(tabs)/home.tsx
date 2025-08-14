@@ -1,5 +1,6 @@
 import { Redirect, useRouter } from 'expo-router';
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -7,7 +8,7 @@ import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTreino } from '@/contexts/TreinoContextLocal';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function HomeScreen() {
   const { logout, isAuthenticated } = useAuth();
@@ -21,8 +22,17 @@ export default function HomeScreen() {
     markTreinoAsCompleted, 
     isLoading,
     loadTreinos,
-    getNextAvailableLetter 
+    getNextAvailableLetter,
+    deleteTreino,
+    updateTreinoExercicios
   } = useTreino();
+
+  // Estados para o timer e modal
+  const [activeTimers, setActiveTimers] = useState<{[key: string]: { isRunning: boolean, startTime: number, elapsed: number }}>({});
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [currentWorkoutData, setCurrentWorkoutData] = useState<any>(null);
+  const [feedbackData, setFeedbackData] = useState<{[key: string]: number | 'skip'}>({});
 
   // Se não estiver autenticado, redireciona para login
   if (!isAuthenticated) {
@@ -33,6 +43,144 @@ export default function HomeScreen() {
   useEffect(() => {
     loadTreinos();
   }, []);
+
+  // Timer update effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTimers(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(key => {
+          if (updated[key].isRunning) {
+            // Force re-render para atualizar o display do timer
+          }
+        });
+        return updated;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Função para deletar treino
+  const handleDeleteTreino = (letter: 'A' | 'B' | 'C' | 'D') => {
+    Alert.alert(
+      "Excluir Treino",
+      `Tem certeza que deseja excluir o Treino ${letter}?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Excluir", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteTreino(letter);
+              console.log(`Treino ${letter} excluído com sucesso`);
+            } catch (error) {
+              console.error('Erro ao excluir treino:', error);
+              Alert.alert('Erro', 'Não foi possível excluir o treino');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  // Funções do timer
+  const startTimer = (letter: string) => {
+    setActiveTimers(prev => ({
+      ...prev,
+      [letter]: {
+        isRunning: true,
+        startTime: Date.now(),
+        elapsed: 0
+      }
+    }));
+  };
+
+  const stopTimer = (letter: string) => {
+    const timer = activeTimers[letter];
+    if (timer) {
+      const totalTime = Date.now() - timer.startTime;
+      setActiveTimers(prev => ({
+        ...prev,
+        [letter]: {
+          ...timer,
+          isRunning: false,
+          elapsed: totalTime
+        }
+      }));
+      
+      // Mostrar modal de tempo e preparar feedback
+      const treino = treinos[letter as 'A' | 'B' | 'C' | 'D'];
+      setCurrentWorkoutData({
+        letter,
+        treino,
+        totalTime: Math.floor(totalTime / 1000) // em segundos
+      });
+      setShowFeedbackModal(true);
+      
+      // Inicializar dados de feedback
+      const initialFeedback: {[key: string]: number | 'skip'} = {};
+      treino?.exercicios.forEach((ex: any, index: number) => {
+        initialFeedback[`${letter}_${index}`] = 0;
+      });
+      setFeedbackData(initialFeedback);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getTimerDisplay = (letter: string) => {
+    const timer = activeTimers[letter];
+    if (!timer || !timer.isRunning) return '00:00';
+    
+    const elapsed = Math.floor((Date.now() - timer.startTime) / 1000);
+    return formatTime(elapsed);
+  };
+
+  // Função para calcular novo peso baseado na fórmula
+  const calculateNewWeight = (currentWeight: number, reps: number): number => {
+    if (reps <= 0) return currentWeight;
+    const newWeight = (currentWeight / (1.0278 - (0.0278 * reps)))*0.85;
+    return Math.round(newWeight * 10) / 10; // Arredondar para 2 casas decimais
+  };
+
+  // Função para processar feedback e atualizar pesos
+  const processFeedback = async () => {
+    if (!currentWorkoutData) return;
+    
+    const { letter, treino } = currentWorkoutData;
+    const updatedExercicios = treino.exercicios.map((exercicio: any, index: number) => {
+      const feedbackKey = `${letter}_${index}`;
+      const reps = feedbackData[feedbackKey];
+      
+      if (reps === 'skip' || reps === 0) {
+        return exercicio; // Não altera o peso
+      }
+      
+      const newWeight = calculateNewWeight(exercicio.peso, reps as number);
+      return {
+        ...exercicio,
+        peso: newWeight
+      };
+    });
+
+    try {
+      // Atualizar o treino no contexto com os novos pesos
+      await updateTreinoExercicios(letter as 'A' | 'B' | 'C' | 'D', updatedExercicios);
+      
+      setShowFeedbackForm(false);
+      setShowFeedbackModal(false);
+      Alert.alert('Sucesso!', 'Pesos atualizados baseados no seu feedback.');
+    } catch (error) {
+      console.error('Erro ao atualizar pesos:', error);
+      Alert.alert('Erro', 'Não foi possível atualizar os pesos.');
+    }
+  };
 
   const handleNewWorkout = () => {
     router.push('/newWorkout');
@@ -60,18 +208,27 @@ export default function HomeScreen() {
       <View style={styles.treinosGrid}>
         {treinosExistentes.map((letter) => {
           const treino = treinos[letter]!;
+          const timer = activeTimers[letter];
+          const isTimerRunning = timer?.isRunning || false;
+          
           return (
             <ThemedView key={letter} style={styles.treinoCard}>
               <View style={styles.treinoHeader}>
-                <ThemedText style={styles.treinoTitle}>
-                  Treino {letter}: {treino.nome}
-                </ThemedText>
-                <ThemedText style={styles.treinoSubtitle}>
-                  3 séries com 8-15 repetições
-                </ThemedText>
-                {treino.ultimaExecucao && (
-                  <ThemedText style={styles.completedBadge}>✅ Concluído</ThemedText>
-                )}
+                <View style={styles.treinoTitleContainer}>
+                  <ThemedText style={styles.treinoTitle}>
+                    Treino {letter}: {treino.nome}
+                  </ThemedText>
+                  <ThemedText style={styles.treinoSubtitle}>
+                    3 séries com 8-15 repetições
+                  </ThemedText>
+                </View>
+                
+                <TouchableOpacity 
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteTreino(letter)}
+                >
+                  <ThemedText style={styles.deleteButtonText}>🗑️</ThemedText>
+                </TouchableOpacity>
               </View>
               
               <View style={styles.exerciciosList}>
@@ -85,12 +242,24 @@ export default function HomeScreen() {
                 ))}
               </View>
 
-              {!treino.ultimaExecucao && (
+              {isTimerRunning ? (
+                <View style={styles.timerContainer}>
+                  <ThemedText style={styles.timerText}>
+                    ⏱️ {getTimerDisplay(letter)}
+                  </ThemedText>
+                  <TouchableOpacity 
+                    style={[styles.actionButton, styles.stopButton]}
+                    onPress={() => stopTimer(letter)}
+                  >
+                    <ThemedText style={styles.actionButtonText}>Terminar Treino</ThemedText>
+                  </TouchableOpacity>
+                </View>
+              ) : (
                 <TouchableOpacity 
-                  style={[styles.completeButton, { backgroundColor: colors.tint }]}
-                  onPress={() => markTreinoAsCompleted(letter)}
+                  style={[styles.actionButton, { backgroundColor: colors.tint }]}
+                  onPress={() => startTimer(letter)}
                 >
-                  <ThemedText style={styles.completeButtonText}>Treino Concluído</ThemedText>
+                  <ThemedText style={styles.actionButtonText}>Iniciar Treino</ThemedText>
                 </TouchableOpacity>
               )}
             </ThemedView>
@@ -133,6 +302,103 @@ export default function HomeScreen() {
           </>
         )}
       </ScrollView>
+
+      {/* Modal de Feedback */}
+      <Modal
+        visible={showFeedbackModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowFeedbackModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <ThemedView style={styles.modalContent}>
+            {currentWorkoutData && !showFeedbackForm && (
+              <>
+                <ThemedText style={styles.modalTitle}>
+                  Treino Concluído! 🎉
+                </ThemedText>
+                <ThemedText style={styles.modalSubtitle}>
+                  Tempo total: {formatTime(currentWorkoutData.totalTime)}
+                </ThemedText>
+                
+                <TouchableOpacity 
+                  style={[styles.feedbackButton, { backgroundColor: colors.tint }]}
+                  onPress={() => setShowFeedbackForm(true)}
+                >
+                  <ThemedText style={styles.feedbackButtonText}>Dar Feedback</ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.modalCloseButton}
+                  onPress={() => setShowFeedbackModal(false)}
+                >
+                  <ThemedText style={styles.modalCloseText}>Fechar</ThemedText>
+                </TouchableOpacity>
+              </>
+            )}
+
+            {/* Formulário de Feedback */}
+            {currentWorkoutData && showFeedbackForm && (
+              <>
+                <ThemedText style={styles.modalTitle}>
+                  Como foi o treino?
+                </ThemedText>
+                <ThemedText style={styles.modalSubtitle}>
+                  Marque quantas repetições conseguiu fazer:
+                </ThemedText>
+                
+                <ScrollView style={styles.feedbackForm}>
+                  {currentWorkoutData.treino.exercicios.map((exercicio: any, index: number) => {
+                    const feedbackKey = `${currentWorkoutData.letter}_${index}`;
+                    return (
+                      <View key={index} style={styles.exerciseRepSection}>
+                        <ThemedText style={styles.exerciseRepName}>
+                          {exercicio.nome} ({exercicio.peso}kg)
+                        </ThemedText>
+                        
+                        <View style={styles.pickerContainer}>
+                          <Picker
+                            selectedValue={feedbackData[feedbackKey] || 'skip'}
+                            onValueChange={(itemValue) => setFeedbackData(prev => ({
+                              ...prev,
+                              [feedbackKey]: itemValue
+                            }))}
+                            style={styles.picker}
+                          >
+                            <Picker.Item label="Pular exercício" value="skip" />
+                            {Array.from({length: 16}, (_, i) => i + 1).map(rep => (
+                              <Picker.Item key={rep} label={`${rep} repetições`} value={rep} />
+                            ))}
+                          </Picker>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </ScrollView>
+
+                <View style={styles.feedbackActions}>
+                  <TouchableOpacity 
+                    style={[styles.feedbackButton, { backgroundColor: colors.tint }]}
+                    onPress={processFeedback}
+                  >
+                    <ThemedText style={styles.feedbackButtonText}>Salvar Feedback</ThemedText>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.modalCloseButton}
+                    onPress={() => {
+                      setShowFeedbackForm(false);
+                      setShowFeedbackModal(false);
+                    }}
+                  >
+                    <ThemedText style={styles.modalCloseText}>Cancelar</ThemedText>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </ThemedView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -195,20 +461,37 @@ const styles = StyleSheet.create({
   treinoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 15,
+  },
+  treinoTitleContainer: {
+    flex: 1,
   },
   treinoTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    flex: 1,
+    marginBottom: 4,
   },
   treinoSubtitle: {
     fontSize: 14,
     opacity: 0.8,
-    marginTop: 4,
-    marginBottom: 8,
     fontStyle: 'italic',
+  },
+  deleteButton: {
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#666',
+    marginLeft: 10,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    color: '#666',
   },
   completedBadge: {
     fontSize: 14,
@@ -231,6 +514,28 @@ const styles = StyleSheet.create({
   exercicioDetails: {
     fontSize: 14,
     opacity: 0.7,
+  },
+  timerContainer: {
+    alignItems: 'center',
+    gap: 10,
+  },
+  timerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#007AFF',
+  },
+  actionButton: {
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  stopButton: {
+    backgroundColor: '#ff4444',
   },
   completeButton: {
     padding: 12,
@@ -312,5 +617,87 @@ const styles = StyleSheet.create({
   },
   treinosGrid: {
     gap: 16,
+  },
+  // Estilos do Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    margin: 20,
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    minWidth: 300,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: 'center',
+    opacity: 0.8,
+  },
+  feedbackButton: {
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 10,
+  },
+  feedbackButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalCloseButton: {
+    padding: 10,
+    alignItems: 'center',
+  },
+  modalCloseText: {
+    fontSize: 16,
+    opacity: 0.7,
+    textAlign: 'center',
+  },
+  // Estilos do formulário de feedback
+  feedbackForm: {
+    maxHeight: 300,
+    width: '100%',
+    marginBottom: 20,
+  },
+  exerciseRepSection: {
+    marginBottom: 20,
+    padding: 15,
+    borderRadius: 8,
+    backgroundColor: '#f5f5f5',
+  },
+  exerciseRepName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    backgroundColor: '#fff',
+  },
+  picker: {
+    height: 50,
+  },
+  feedbackActions: {
+    width: '100%',
+    gap: 10,
   },
 });

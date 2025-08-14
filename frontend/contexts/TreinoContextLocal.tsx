@@ -10,6 +10,7 @@ interface TreinoContextType {
   loadTreinos: () => Promise<void>;
   markTreinoAsCompleted: (letter: TreinoLetter) => Promise<void>;
   deleteTreino: (letter: TreinoLetter) => Promise<void>;
+  updateTreinoExercicios: (letter: TreinoLetter, exercicios: Exercicio[]) => Promise<void>;
   getNextAvailableLetter: () => TreinoLetter | null;
   isLoading: boolean;
 }
@@ -83,8 +84,6 @@ export const TreinoProvider: React.FC<TreinoProviderProps> = ({ children }) => {
       exercicios: exercicios,
       dataCriacao: new Date().toISOString(),
       ultimaExecucao: null,
-      repeticoes: "8-15",
-      series: 3,
     };
 
     const updatedTreinos = {
@@ -128,6 +127,25 @@ export const TreinoProvider: React.FC<TreinoProviderProps> = ({ children }) => {
     await saveTreinos(updatedTreinos);
   };
 
+  // Atualizar exercícios de um treino
+  const updateTreinoExercicios = async (letter: TreinoLetter, exercicios: Exercicio[]) => {
+    const treino = treinos[letter];
+    if (!treino) return;
+
+    const updatedTreino = {
+      ...treino,
+      exercicios: exercicios,
+    };
+
+    const updatedTreinos = {
+      ...treinos,
+      [letter]: updatedTreino,
+    };
+
+    setTreinos(updatedTreinos);
+    await saveTreinos(updatedTreinos);
+  };
+
   // Carregar treinos na inicialização
   useEffect(() => {
     loadTreinos();
@@ -141,6 +159,7 @@ export const TreinoProvider: React.FC<TreinoProviderProps> = ({ children }) => {
     loadTreinos,
     markTreinoAsCompleted,
     deleteTreino,
+    updateTreinoExercicios,
     getNextAvailableLetter,
     isLoading,
   };

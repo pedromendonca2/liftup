@@ -45,8 +45,6 @@ export const createTreino = async (nome: string, exercicios: Exercicio[], letra:
       })),
       dataCriacao: new Date().toISOString(),
       ultimaExecucao: null,
-      repeticoes: "8-15",
-      series: 3,
     };
 
     treinos.push(newTreino);

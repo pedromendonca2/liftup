@@ -62,8 +62,6 @@ export function TreinoProvider({ children }: { children: ReactNode }) {
         letra: nextLetter,
         dataCriacao: new Date().toISOString(),
         ultimaExecucao: null,
-        repeticoes: "8-15",
-        series: 3,
       };
 
       const newTreinos = {

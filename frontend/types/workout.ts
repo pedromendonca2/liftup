@@ -15,6 +15,4 @@ export interface Treino {
   letra: TreinoLetter;
   dataCriacao: string;
   ultimaExecucao: string | null;
-  repeticoes: string; // sempre "8-15"
-  series: number; // sempre "3"
 }
