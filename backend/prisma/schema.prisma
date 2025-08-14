@@ -16,13 +16,13 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  password  String   // Essencial para o login
-  name      String
-  age       Int     // Opcional, como sugerido pela ausência no login
-  gender    Gender  // Usando um Enum para clareza
-  height    Float   // Altura em metros (ex: 1.75)
-  weight    Float   // Peso em kg (ex: 70.5)
-  workouts  Workout[] // Relacionamento: um usuário pode ter vários treinos
+  password  String
+  name      String?
+  age       Int?
+  sex       Sex?
+  height    Float?
+  weight    Float?
+  workouts  Workout[]
 }
 
 // Modelo para os Treinos criados pelos usuários
@@ -70,7 +70,7 @@ model WorkoutExercise {
 
 
 // Enum para o sexo biológico, mais descritivo que um Boolean
-enum Gender {
+enum Sex {
   MASCULINO
   FEMININO
 }
