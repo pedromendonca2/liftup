@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from '@/contexts/ThemeContext';
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -97,7 +97,7 @@ export default function LoginScreen() {
       marginTop: 20,
     },
     buttonText: {
-      color: 'white',
+      color: colors.tintButtonText,
       fontSize: 18,
       fontWeight: 'bold',
     },
@@ -155,7 +155,7 @@ export default function LoginScreen() {
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator color={colors.tintButtonText} />
           ) : (
             <Text style={styles.buttonText}>Entrar</Text>
           )}
@@ -167,7 +167,7 @@ export default function LoginScreen() {
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator color={colors.tintButtonText} />
           ) : (
             <Text style={styles.buttonText}>Registrar</Text>
           )}

@@ -1,20 +1,25 @@
 import { Redirect, useRouter } from 'expo-router';
-import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { useColorScheme, useTheme } from '@/contexts/ThemeContext';
 import { useTreino } from '@/contexts/TreinoContextLocal';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function HomeScreen() {
   const { logout, isAuthenticated } = useAuth();
+  const { toggleTheme } = useTheme();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
+  
+  // Estado para controlar o dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownAnimation = useRef(new Animated.Value(0)).current;
   const { 
     treinos, 
     selectedTreino, 
@@ -186,6 +191,35 @@ export default function HomeScreen() {
     router.push('/newWorkout');
   };
 
+  // Função para toggle do dropdown
+  const toggleDropdown = () => {
+    const toValue = isDropdownOpen ? 0 : 1;
+    setIsDropdownOpen(!isDropdownOpen);
+    
+    Animated.timing(dropdownAnimation, {
+      toValue,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  // Função para alterar tema
+  const handleThemeToggle = () => {
+    toggleTheme();
+    setIsDropdownOpen(false);
+    Animated.timing(dropdownAnimation, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  // Função para logout
+  const handleLogout = () => {
+    logout();
+    setIsDropdownOpen(false);
+  };
+
   const currentTreino = treinos[selectedTreino];
 
   // Renderizar todos os treinos existentes
@@ -272,8 +306,55 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       {/* Header com fundo colorido */}
-      <View style={[styles.header, { backgroundColor: colorScheme === 'dark' ? '#1D3D47' : '#1f3a7a' }]}>
-        <ThemedText type="title" style={styles.headerTitle}>Treinos Cadastrados</ThemedText>
+      <View style={[styles.header, { backgroundColor: colors.tint }]}>
+        <View style={styles.headerContent}>
+          <ThemedText type="title" style={styles.headerTitle}>Treinos Cadastrados</ThemedText>
+          
+          {/* Menu Dropdown */}
+          <View style={styles.menuContainer}>
+            <TouchableOpacity 
+              style={styles.menuButton}
+              onPress={toggleDropdown}
+            >
+              <ThemedText style={styles.menuArrow}>
+                {isDropdownOpen ? '▲' : '▼'}
+              </ThemedText>
+            </TouchableOpacity>
+            
+            {/* Dropdown Menu */}
+            <Animated.View style={[
+              styles.dropdownMenu,
+              {
+                opacity: dropdownAnimation,
+                transform: [{
+                  scaleY: dropdownAnimation
+                }],
+                backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : colors.background,
+              }
+            ]}>
+              {/* Toggle de Tema */}
+              <TouchableOpacity 
+                style={styles.dropdownItem}
+                onPress={handleThemeToggle}
+              >
+                <ThemedText style={[styles.dropdownItemText, { color: colors.dropdownText }]}>
+                  {colorScheme === 'light' ? '🌙 Modo Escuro' : '☀️ Modo Claro'}
+                </ThemedText>
+              </TouchableOpacity>
+              
+              {/* Separador */}
+              <View style={styles.dropdownSeparator} />
+              
+              {/* Logout */}
+              <TouchableOpacity 
+                style={styles.dropdownItem}
+                onPress={handleLogout}
+              >
+                <ThemedText style={[styles.dropdownItemText, { color: '#ff4444' }]}>Sair</ThemedText>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </View>
       </View>
       
       {/* Conteúdo scrollável */}
@@ -414,11 +495,55 @@ const styles = StyleSheet.create({
     minHeight: 120,
     justifyContent: 'flex-end',
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   headerTitle: {
     color: 'white',
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  menuContainer: {
+    position: 'relative',
+  },
+  menuButton: {
+    padding: 10,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  menuArrow: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 50,
+    right: 0,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 1000,
+    minWidth: 150,
+  },
+  dropdownItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  dropdownSeparator: {
+    height: 1,
+    backgroundColor: '#eee',
   },
   content: {
     flex: 1,

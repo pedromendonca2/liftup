@@ -10,7 +10,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from '@/contexts/ThemeContext';
 
 export default function TabTwoScreen() {
   const { isAuthenticated, logout } = useAuth();
@@ -36,6 +36,34 @@ export default function TabTwoScreen() {
       ]
     );
   };
+
+  const styles = StyleSheet.create({
+    headerImage: {
+      color: '#808080',
+      bottom: -90,
+      left: -35,
+      position: 'absolute',
+    },
+    titleContainer: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    logoutContainer: {
+      marginTop: 30,
+      marginBottom: 20,
+      paddingHorizontal: 20,
+    },
+    logoutButton: {
+      padding: 15,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    logoutButtonText: {
+      color: colors.tintButtonText,
+      fontWeight: 'bold',
+      fontSize: 16,
+    },
+  });
 
   return (
     <ParallaxScrollView
@@ -134,30 +162,4 @@ export default function TabTwoScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  logoutContainer: {
-    marginTop: 30,
-    marginBottom: 20,
-    paddingHorizontal: 20,
-  },
-  logoutButton: {
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  logoutButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
+
