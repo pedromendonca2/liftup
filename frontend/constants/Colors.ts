@@ -4,7 +4,7 @@
  */
 
 const tintColorLight = '#1f3a7a';
-const tintColorDark = '#fff';
+const tintColorDark = '#FF5C34';
 
 export const Colors = {
   light: {
@@ -29,6 +29,6 @@ export const Colors = {
     buttonText: '#11181C', // Texto escuro para botões genéricos
     dropdownText: '#ECEDEE', // Texto claro para dropdown em modo escuro
     // Texto para botões com fundo tint (sempre contrasta)
-    tintButtonText: '#11181C', // Preto sobre branco
+    tintButtonText: '#ffffff', // Branco sobre laranja (#FF5C34)
   },
 };

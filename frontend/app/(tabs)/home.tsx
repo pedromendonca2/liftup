@@ -318,8 +318,8 @@ export default function HomeScreen() {
       backgroundColor: 'transparent',
     },
     letterButtonSelected: {
-      backgroundColor: '#007AFF',
-      borderColor: '#007AFF',
+      backgroundColor: colors.tint,
+      borderColor: colors.tint,
     },
     letterButtonWithTreino: {
       backgroundColor: '#28a745',
@@ -330,7 +330,7 @@ export default function HomeScreen() {
       fontWeight: 'bold',
     },
     letterTextSelected: {
-      color: colors.buttonText,
+      color: colors.tintButtonText,
     },
     letterTextWithTreino: {
       color: colors.buttonText,
