@@ -1,4 +1,6 @@
+import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { useColorScheme } from '@/contexts/ThemeContext';
 import { RegisterFormData, registerFormSchema } from '@/types/register';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Picker } from '@react-native-picker/picker';
@@ -9,6 +11,8 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, Touc
 export default function RegisterScreen() {
   const router = useRouter();
   const { register } = useAuth();
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
 
   const {
     control,
@@ -43,6 +47,65 @@ export default function RegisterScreen() {
       Alert.alert('Erro', 'Ocorreu um erro inesperado.');
     }
   };
+
+  const styles = StyleSheet.create({
+    pickerContainer: {
+      borderWidth: 1,
+      borderColor: colors.icon,
+      borderRadius: 8,
+      backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : colors.background,
+      marginBottom: 15,
+    },
+    picker: {
+      height: 50,
+      color: colors.text,
+    },
+    container: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      padding: 20,
+      backgroundColor: colors.background,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      marginBottom: 30,
+      color: colors.text,
+    },
+    inputContainer: {
+      marginBottom: 15,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.icon,
+      borderRadius: 8,
+      padding: 15,
+      fontSize: 16,
+      backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : '#f9f9f9',
+      color: colors.text,
+    },
+    button: {
+      backgroundColor: colors.tint,
+      padding: 15,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+    buttonDisabled: {
+      backgroundColor: colors.icon,
+      opacity: 0.7,
+    },
+    buttonText: {
+      color: colors.tintButtonText,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    errorText: {
+      color: 'red',
+      marginTop: 5,
+      marginLeft: 5,
+    },
+  });
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -207,66 +270,9 @@ export default function RegisterScreen() {
         onPress={handleSubmit(handleRegister)}
         disabled={isSubmitting}
       >
-        {isSubmitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Cadastrar</Text>}
+        {isSubmitting ? <ActivityIndicator color={colors.tintButtonText} /> : <Text style={styles.buttonText}>Cadastrar</Text>}
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
-// Adicione os estilos para o Picker
-const styles = StyleSheet.create({
-  // ... seus estilos existentes
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    marginBottom: 15,
-  },
-  picker: {
-    height: 50,
-  },
-  // ... resto dos seus estilos
-  container: {
-    flexGrow: 1, // Usa flexGrow para o ScrollView
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#f5f5f5',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-  inputContainer: {
-    marginBottom: 15,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 15,
-    fontSize: 16,
-    backgroundColor: '#fff',
-  },
-  button: {
-    backgroundColor: '#007bff',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    backgroundColor: '#a0c8f0',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  errorText: {
-    color: 'red',
-    marginTop: 5,
-    marginLeft: 5,
-  },
-});

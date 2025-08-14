@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from '@/contexts/ThemeContext';
 import { Redirect } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 

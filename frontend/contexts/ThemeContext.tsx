@@ -8,6 +8,7 @@ interface ThemeContextType {
   themeMode: ThemeMode;
   currentTheme: 'light' | 'dark';
   setThemeMode: (mode: ThemeMode) => void;
+  toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -51,11 +52,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Função para alternar entre claro e escuro
+  const toggleTheme = () => {
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    setThemeMode(newTheme);
+  };
+
   return (
     <ThemeContext.Provider value={{
       themeMode,
       currentTheme,
       setThemeMode,
+      toggleTheme,
     }}>
       {children}
     </ThemeContext.Provider>

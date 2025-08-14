@@ -9,11 +9,15 @@ const tintColorDark = '#fff';
 export const Colors = {
   light: {
     text: '#11181C',
-    background: '#fff',
+    background: '#f8f8ff', // Ghost white
     tint: tintColorLight,
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
+    buttonText: '#ffffff', // Texto branco para botões em modo claro
+    dropdownText: '#11181C', // Texto escuro para dropdown em modo claro
+    // Texto para botões com fundo tint (sempre contrasta)
+    tintButtonText: '#ffffff', // Branco sobre azul escuro
   },
   dark: {
     text: '#ECEDEE',
@@ -22,5 +26,9 @@ export const Colors = {
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
+    buttonText: '#11181C', // Texto escuro para botões genéricos
+    dropdownText: '#ECEDEE', // Texto claro para dropdown em modo escuro
+    // Texto para botões com fundo tint (sempre contrasta)
+    tintButtonText: '#11181C', // Preto sobre branco
   },
 };

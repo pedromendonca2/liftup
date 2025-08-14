@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/contexts/ThemeContext';
 import { useTreino } from '@/contexts/TreinoContextLocal';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { Exercicio } from '@/types/workout';
 import { Picker } from '@react-native-picker/picker';
 import { Stack, useRouter } from 'expo-router';
@@ -163,7 +163,7 @@ export default function NewWorkoutScreen() {
       justifyContent: 'flex-end',
     },
     headerTitle: {
-      color: 'white',
+      color: colors.tintButtonText,
       fontSize: 24,
       fontWeight: 'bold',
       textAlign: 'center',
@@ -202,8 +202,12 @@ export default function NewWorkoutScreen() {
       overflow: 'hidden',
     },
     picker: {
-      color: colors.text,
+      color: colorScheme === 'dark' ? '#ECEDEE' : '#11181C',
       backgroundColor: 'transparent',
+    },
+    pickerItem: {
+      color: colorScheme === 'dark' ? '#ECEDEE' : '#11181C',
+      backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : '#f9f9f9',
     },
     buttonContainer: {
       flexDirection: 'row',
@@ -229,7 +233,12 @@ export default function NewWorkoutScreen() {
       backgroundColor: colors.icon,
     },
     buttonText: {
-      color: 'white',
+      color: colors.buttonText,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    tintButtonText: {
+      color: colors.tintButtonText,
       fontSize: 16,
       fontWeight: 'bold',
     },
@@ -279,7 +288,7 @@ export default function NewWorkoutScreen() {
       marginLeft: 10,
     },
     removeButtonText: {
-      color: 'white',
+      color: '#ffffff',
       fontSize: 16,
       fontWeight: 'bold',
       lineHeight: 20,
@@ -335,13 +344,17 @@ export default function NewWorkoutScreen() {
                 selectedValue={selectedWorkoutType}
                 onValueChange={(itemValue) => setSelectedWorkoutType(itemValue)}
                 style={styles.picker}
+                dropdownIconColor={colors.text}
+                mode="dropdown"
+                itemStyle={styles.pickerItem}
               >
                 {workoutTypes.map((type) => (
                   <Picker.Item 
                     key={type.value} 
                     label={type.label} 
                     value={type.value}
-                    color={colors.text}
+                    color={colorScheme === 'dark' ? '#ECEDEE' : '#11181C'}
+                    style={styles.pickerItem}
                   />
                 ))}
               </Picker>
@@ -376,7 +389,7 @@ export default function NewWorkoutScreen() {
               onPress={handleSaveWorkout}
               disabled={!isFormValid()}
             >
-              <ThemedText style={styles.buttonText}>Adicionar Exercício</ThemedText>
+              <ThemedText style={isFormValid() ? styles.tintButtonText : styles.buttonText}>Adicionar Exercício</ThemedText>
             </TouchableOpacity>
           </View>
 
@@ -420,7 +433,7 @@ export default function NewWorkoutScreen() {
                 onPress={handleCreateTreino}
                 disabled={!canCreateTreino() || isLoading}
               >
-                <ThemedText style={styles.buttonText}>
+                <ThemedText style={[styles.buttonText, { color: '#ffffff' }]}>
                   {isLoading ? 'Criando...' : 'Criar Treino Completo'}
                 </ThemedText>
               </TouchableOpacity>
