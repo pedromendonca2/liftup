@@ -1,19 +1,24 @@
 import { Redirect, useRouter } from 'expo-router';
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Animated, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
+import { useColorScheme, useTheme } from '@/contexts/ThemeContext';
 import { useTreino } from '@/contexts/TreinoContextLocal';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function HomeScreen() {
   const { logout, isAuthenticated } = useAuth();
+  const { themeMode, setThemeMode } = useTheme();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
+  
+  // Estado para controlar o dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownAnimation = useRef(new Animated.Value(0)).current;
   const { 
     treinos, 
     selectedTreino, 
@@ -36,6 +41,35 @@ export default function HomeScreen() {
 
   const handleNewWorkout = () => {
     router.push('/newWorkout');
+  };
+
+  // Função para toggle do dropdown
+  const toggleDropdown = () => {
+    const toValue = isDropdownOpen ? 0 : 1;
+    setIsDropdownOpen(!isDropdownOpen);
+    
+    Animated.timing(dropdownAnimation, {
+      toValue,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  // Função para alterar tema
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setThemeMode(newTheme);
+    setIsDropdownOpen(false);
+    Animated.timing(dropdownAnimation, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  // Função para logout
+  const handleLogout = () => {
+    logout();
+    setIsDropdownOpen(false);
   };
 
   const currentTreino = treinos[selectedTreino];
@@ -104,7 +138,71 @@ export default function HomeScreen() {
     <View style={styles.container}>
       {/* Header com fundo colorido */}
       <View style={[styles.header, { backgroundColor: colorScheme === 'dark' ? '#1D3D47' : '#1f3a7a' }]}>
-        <ThemedText type="title" style={styles.headerTitle}>Treinos Cadastrados</ThemedText>
+        <View style={styles.headerContent}>
+          <ThemedText type="title" style={styles.headerTitle}>Treinos Cadastrados</ThemedText>
+          
+          {/* Menu Dropdown */}
+          <View style={styles.menuContainer}>
+            <TouchableOpacity 
+              style={styles.menuButton}
+              onPress={toggleDropdown}
+            >
+              <ThemedText style={styles.menuArrow}>
+                {isDropdownOpen ? '▲' : '▼'}
+              </ThemedText>
+            </TouchableOpacity>
+            
+            {/* Dropdown Menu */}
+            <Animated.View style={[
+              styles.dropdownMenu,
+              {
+                opacity: dropdownAnimation,
+                transform: [{
+                  scaleY: dropdownAnimation
+                }],
+                backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : '#ffffff',
+              }
+            ]}>
+              {/* Opções de Tema */}
+              <ThemedText style={styles.dropdownSectionTitle}>Tema</ThemedText>
+              
+              <TouchableOpacity 
+                style={[styles.dropdownItem, themeMode === 'light' && styles.dropdownItemActive]}
+                onPress={() => handleThemeChange('light')}
+              >
+                <ThemedText style={styles.dropdownItemText}>☀️ Claro</ThemedText>
+                {themeMode === 'light' && <ThemedText style={styles.checkmark}>✓</ThemedText>}
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.dropdownItem, themeMode === 'dark' && styles.dropdownItemActive]}
+                onPress={() => handleThemeChange('dark')}
+              >
+                <ThemedText style={styles.dropdownItemText}>🌙 Escuro</ThemedText>
+                {themeMode === 'dark' && <ThemedText style={styles.checkmark}>✓</ThemedText>}
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.dropdownItem, themeMode === 'system' && styles.dropdownItemActive]}
+                onPress={() => handleThemeChange('system')}
+              >
+                <ThemedText style={styles.dropdownItemText}>⚙️ Sistema</ThemedText>
+                {themeMode === 'system' && <ThemedText style={styles.checkmark}>✓</ThemedText>}
+              </TouchableOpacity>
+              
+              {/* Separador */}
+              <View style={styles.dropdownSeparator} />
+              
+              {/* Logout */}
+              <TouchableOpacity 
+                style={styles.dropdownItem}
+                onPress={handleLogout}
+              >
+                <ThemedText style={[styles.dropdownItemText, { color: '#ff4444' }]}>🚪 Sair</ThemedText>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </View>
       </View>
       
       {/* Conteúdo scrollável */}
@@ -148,11 +246,85 @@ const styles = StyleSheet.create({
     minHeight: 120,
     justifyContent: 'flex-end',
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   headerTitle: {
     color: 'white',
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
+    flex: 1,
     textAlign: 'center',
+  },
+  menuContainer: {
+    position: 'relative',
+    zIndex: 1000,
+  },
+  menuButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    minWidth: 40,
+    alignItems: 'center',
+  },
+  menuArrow: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 45,
+    right: 0,
+    minWidth: 180,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    paddingVertical: 8,
+    zIndex: 1001,
+  },
+  dropdownSectionTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    opacity: 0.6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 44,
+  },
+  dropdownItemActive: {
+    backgroundColor: 'rgba(31, 58, 122, 0.1)',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  checkmark: {
+    color: '#1f3a7a',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  dropdownSeparator: {
+    height: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    marginVertical: 4,
+    marginHorizontal: 16,
   },
   content: {
     flex: 1,
