@@ -1,13 +1,14 @@
+import { useAuth } from '@/contexts/AuthContext';
 import { RegisterFormData, registerFormSchema } from '@/types/register';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
-import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { register } = useAuth();
 
   const {
     control,
@@ -24,14 +25,18 @@ export default function RegisterScreen() {
   });
 
   const handleRegister = async (data: RegisterFormData) => {
-  const payload = {
-    ...data,
-    age: Number(data.age),
-    height: Number(data.height),
-    weight: Number(data.weight),
-  };
+    const payload = {
+      ...data,
+      age: Number(data.age),
+      height: Number(data.height),
+      weight: Number(data.weight),
+    };
     try {
-      const response = await register(payload);// muddar no authContext
+      const response = await register(payload);
+      if (response?.error) {
+        Alert.alert('Erro', response.errorMessage || 'Erro ao registrar');
+        return;
+      }
       Alert.alert('Sucesso!', 'Cadastro realizado com sucesso.');
       router.push('/login');
     } catch (error) {
@@ -118,7 +123,7 @@ export default function RegisterScreen() {
           </View>
         )}
       />
-            
+              
       {/* Campo Idade */}
       <Controller
         control={control}
@@ -130,6 +135,7 @@ export default function RegisterScreen() {
               placeholder="Idade"
               onBlur={onBlur}
               onChangeText={onChange}
+              value={value ? String(value) : ''}
               keyboardType="numeric"
             />
             {errors.age && <Text style={styles.errorText}>{errors.age.message}</Text>}
@@ -137,10 +143,10 @@ export default function RegisterScreen() {
         )}
       />
 
-      {/* Campo Gênero */}
+      {/* Campo Sexo */}
       <Controller
         control={control}
-        name="gender"
+        name="sex"
         render={({ field: { onChange, value } }) => (
           <View style={styles.pickerContainer}>
             <Picker
@@ -148,14 +154,14 @@ export default function RegisterScreen() {
               onValueChange={(itemValue) => onChange(itemValue)}
               style={styles.picker}
             >
-              <Picker.Item label="Selecione o Gênero" value="" />
+              <Picker.Item label="Selecione o Sexo" value="" />
               <Picker.Item label="Masculino" value="MASCULINO" />
               <Picker.Item label="Feminino" value="FEMININO" />
             </Picker>
           </View>
         )}
       />
-       {errors.gender && <Text style={styles.errorText}>{errors.gender.message}</Text>}
+       {errors.sex && <Text style={styles.errorText}>{errors.sex.message}</Text>}
 
 
       {/* Campo Altura */}
@@ -169,6 +175,7 @@ export default function RegisterScreen() {
               placeholder="Altura em metros (ex: 1.75)"
               onBlur={onBlur}
               onChangeText={onChange}
+              value={value ? String(value) : ''}
               keyboardType="numeric"
             />
             {errors.height && <Text style={styles.errorText}>{errors.height.message}</Text>}
@@ -187,6 +194,7 @@ export default function RegisterScreen() {
               placeholder="Peso em Kg (ex: 70.5)"
               onBlur={onBlur}
               onChangeText={onChange}
+              value={value ? String(value) : ''}
               keyboardType="numeric"
             />
             {errors.weight && <Text style={styles.errorText}>{errors.weight.message}</Text>}
