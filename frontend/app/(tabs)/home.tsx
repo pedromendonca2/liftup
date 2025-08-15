@@ -425,7 +425,7 @@ export default function HomeScreen() {
                   Como foi o treino?
                 </ThemedText>
                 <ThemedText style={styles.modalSubtitle}>
-                  Marque quantas repetições conseguiu fazer:
+                  Marque qual foi a média de repetições que você conseguiu fazer:
                 </ThemedText>
                 
                 <ScrollView style={styles.feedbackForm}>
