@@ -42,7 +42,7 @@ app.post('/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Credenciais inválidas' });
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || 'dev-secret', { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || 'liftup_jwt_secret_super_seguro_2024', { expiresIn: '7d' });
     return res.json({ token });
   } catch (error) {
     return res.status(500).json({ error: 'Erro no servidor' });

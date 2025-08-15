@@ -8,7 +8,12 @@ const workoutService = require('../services/workoutService');
 async function createWorkout(req, res) {
   try {
     // O ID do usuário vem do token JWT (via authMiddleware)
-    const userId = req.user.id;
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ message: 'Usuário não autenticado corretamente' });
+    }
+    
     const { name, description, targetMuscleGroup, exercises } = req.body;
     
     const workout = await workoutService.createWorkout({ 

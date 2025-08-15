@@ -26,7 +26,9 @@ function authMiddleware(req, res, next) {
   try {
     // 4. Verifica se o token é válido usando o seu segredo JWT
     // O 'process.env.JWT_SECRET' deve ser uma string segura guardada no seu arquivo .env
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const jwtSecret = process.env.JWT_SECRET || 'liftup_jwt_secret_super_seguro_2024';
+    
+    const decoded = jwt.verify(token, jwtSecret);
 
     // 5. Se o token for válido, anexa o payload (ex: ID do usuário) à requisição
     req.user = decoded; // Agora req.user.id estará disponível nos controllers
@@ -35,6 +37,7 @@ function authMiddleware(req, res, next) {
     next();
   } catch (error) {
     // 7. Se o token for inválido, retorna um erro
+    console.error('authMiddleware - erro ao verificar token:', error.message);
     res.status(401).json({ message: 'Token inválido ou expirado.' });
   }
 }
