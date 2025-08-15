@@ -165,17 +165,29 @@ export default function HomeScreen() {
       const reps = feedbackData[feedbackKey];
       
       if (reps === 'skip' || reps === 0) {
-        return exercicio; // Não altera o peso
+        return {
+          ...exercicio,
+          reps: exercicio.reps || 12 // Manter reps atual ou usar 12 como padrão
+        };
       }
       
       const newWeight = calculateNewWeight(exercicio.peso, reps as number);
       return {
         ...exercicio,
-        peso: newWeight
+        peso: newWeight,
+        reps: reps as number // Incluir as repetições realizadas
       };
     });
 
     try {
+      console.log('📝 Processando feedback para treino:', letter);
+      console.log('📊 Exercícios atualizados:', updatedExercicios.map((ex: any) => ({ 
+        nome: ex.nome, 
+        pesoAnterior: treino.exercicios.find((orig: any) => orig.id === ex.id)?.peso,
+        pesoNovo: ex.peso, 
+        reps: ex.reps 
+      })));
+      
       // Atualizar o treino no contexto com os novos pesos
       await updateTreinoExercicios(letter as 'A' | 'B' | 'C' | 'D', updatedExercicios);
       
@@ -190,6 +202,18 @@ export default function HomeScreen() {
 
   const handleNewWorkout = () => {
     router.push('/newWorkout');
+  };
+
+  // Função para fechar dropdown quando clicar fora
+  const closeDropdown = () => {
+    if (isDropdownOpen) {
+      setIsDropdownOpen(false);
+      Animated.timing(dropdownAnimation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    }
   };
 
   // Função para toggle do dropdown
@@ -260,7 +284,10 @@ export default function HomeScreen() {
                 
                 <TouchableOpacity 
                   style={styles.deleteButton}
-                  onPress={() => handleDeleteTreino(letter)}
+                  onPress={() => {
+                    closeDropdown(); // Fechar dropdown se estiver aberto
+                    handleDeleteTreino(letter);
+                  }}
                 >
                   <ThemedText style={styles.deleteButtonText}>🗑️</ThemedText>
                 </TouchableOpacity>
@@ -282,20 +309,26 @@ export default function HomeScreen() {
                   <ThemedText style={styles.timerText}>
                     ⏱️ {getTimerDisplay(letter)}
                   </ThemedText>
-                  <TouchableOpacity 
-                    style={[styles.actionButton, styles.stopButton]}
-                    onPress={() => stopTimer(letter)}
-                  >
-                    <ThemedText style={styles.actionButtonText}>Terminar Treino</ThemedText>
-                  </TouchableOpacity>
+                                     <TouchableOpacity 
+                     style={[styles.actionButton, styles.stopButton]}
+                     onPress={() => {
+                       closeDropdown();
+                       stopTimer(letter);
+                     }}
+                   >
+                     <ThemedText style={styles.actionButtonText}>Terminar Treino</ThemedText>
+                   </TouchableOpacity>
                 </View>
               ) : (
-                <TouchableOpacity 
-                  style={[styles.actionButton, { backgroundColor: colors.tint }]}
-                  onPress={() => startTimer(letter)}
-                >
-                  <ThemedText style={styles.actionButtonText}>Iniciar Treino</ThemedText>
-                </TouchableOpacity>
+                                  <TouchableOpacity 
+                    style={[styles.actionButton, { backgroundColor: colors.tint }]}
+                    onPress={() => {
+                      closeDropdown();
+                      startTimer(letter);
+                    }}
+                  >
+                    <ThemedText style={styles.actionButtonText}>Iniciar Treino</ThemedText>
+                  </TouchableOpacity>
               )}
             </ThemedView>
           );
@@ -348,8 +381,8 @@ export default function HomeScreen() {
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
       shadowRadius: 4,
-      elevation: 5,
-      zIndex: 1000,
+      elevation: 15,
+      zIndex: 1001, // Maior z-index
       minWidth: 150,
     },
     dropdownItem: {
@@ -432,7 +465,8 @@ export default function HomeScreen() {
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.2,
       shadowRadius: 2,
-      elevation: 2,
+      elevation: 10,
+      zIndex: 2000, // Maior que o dropdown
     },
     deleteButtonText: {
       fontSize: 16,
@@ -651,10 +685,28 @@ export default function HomeScreen() {
       width: '100%',
       gap: 10,
     },
+    overlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 999, // Abaixo do dropdown mas acima do resto
+      backgroundColor: 'transparent',
+    },
   });
 
   return (
     <View style={styles.container}>
+      {/* Overlay transparente para fechar dropdown */}
+      {isDropdownOpen && (
+        <TouchableOpacity 
+          style={styles.overlay}
+          activeOpacity={1}
+          onPress={closeDropdown}
+        />
+      )}
+      
       {/* Header com fundo colorido */}
       <View style={[styles.header, { backgroundColor: colors.tint }]}>
         <View style={styles.headerContent}>
@@ -672,37 +724,41 @@ export default function HomeScreen() {
             </TouchableOpacity>
             
             {/* Dropdown Menu */}
-            <Animated.View style={[
-              styles.dropdownMenu,
-              {
-                opacity: dropdownAnimation,
-                transform: [{
-                  scaleY: dropdownAnimation
-                }],
-                backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : colors.background,
-              }
-            ]}>
-              {/* Toggle de Tema */}
-              <TouchableOpacity 
-                style={styles.dropdownItem}
-                onPress={handleThemeToggle}
+            {isDropdownOpen && (
+              <Animated.View style={[
+                styles.dropdownMenu,
+                {
+                  opacity: dropdownAnimation,
+                  transform: [{
+                    scaleY: dropdownAnimation
+                  }],
+                  backgroundColor: colorScheme === 'dark' ? '#2c2c2c' : colors.background,
+                }
+              ]}
+              pointerEvents={isDropdownOpen ? 'auto' : 'none'}
               >
-                <ThemedText style={[styles.dropdownItemText, { color: colors.dropdownText }]}>
-                  {colorScheme === 'light' ? '🌙 Modo Escuro' : '☀️ Modo Claro'}
-                </ThemedText>
-              </TouchableOpacity>
-              
-              {/* Separador */}
-              <View style={styles.dropdownSeparator} />
-              
-              {/* Logout */}
-              <TouchableOpacity 
-                style={styles.dropdownItem}
-                onPress={handleLogout}
-              >
-                <ThemedText style={[styles.dropdownItemText, { color: '#ff4444' }]}>Sair</ThemedText>
-              </TouchableOpacity>
-            </Animated.View>
+                {/* Toggle de Tema */}
+                <TouchableOpacity 
+                  style={styles.dropdownItem}
+                  onPress={handleThemeToggle}
+                >
+                  <ThemedText style={[styles.dropdownItemText, { color: colors.dropdownText }]}>
+                    {colorScheme === 'light' ? '🌙 Modo Escuro' : '☀️ Modo Claro'}
+                  </ThemedText>
+                </TouchableOpacity>
+                
+                {/* Separador */}
+                <View style={styles.dropdownSeparator} />
+                
+                {/* Logout */}
+                <TouchableOpacity 
+                  style={styles.dropdownItem}
+                  onPress={handleLogout}
+                >
+                  <ThemedText style={[styles.dropdownItemText, { color: '#ff4444' }]}>Sair</ThemedText>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
           </View>
         </View>
       </View>

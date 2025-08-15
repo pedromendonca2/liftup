@@ -1,6 +1,7 @@
 import * as WorkoutService from '@/services/workoutService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { Alert } from 'react-native'; // Added Alert import
 import { Exercicio, Treino, TreinoLetter } from '../types/workout';
 
 interface TreinoContextType {
@@ -161,18 +162,15 @@ export const TreinoProvider: React.FC<TreinoProviderProps> = ({ children }) => {
       const result = await WorkoutService.deleteTreino(treino.id);
       
       if (result.success) {
-        const updatedTreinos = {
-          ...treinos,
-          [letter]: null,
-        };
-
-        setTreinos(updatedTreinos);
-        await saveTreinos(updatedTreinos);
+        await loadTreinos(); // Garante sincronização com o banco
+        Alert.alert('Sucesso', 'Treino deletado com sucesso!');
       } else {
+        Alert.alert('Erro', result.error || 'Erro ao deletar treino');
         throw new Error(result.error || 'Erro ao deletar treino');
       }
     } catch (error) {
       console.error('Erro ao deletar treino:', error);
+      Alert.alert('Erro', 'Erro ao deletar treino.');
       throw error;
     }
   };

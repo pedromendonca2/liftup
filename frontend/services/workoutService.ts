@@ -55,7 +55,7 @@ export const createTreino = async (nome: string, exercicios: Exercicio[], letra:
       exercises: exercicios.map(ex => ({
         name: ex.nome,
         peso: ex.peso,
-        reps: 12,
+        reps: ex.reps || 12, // Usar reps do exercício ou 12 como padrão
         targetMuscle: null
       }))
     };
@@ -152,13 +152,14 @@ export const deleteTreino = async (treinoId: string): Promise<{ success: boolean
 // Função para atualizar exercícios de um treino via API
 export const updateTreinoExercicios = async (treinoId: string, exercicios: Exercicio[]): Promise<{ success: boolean; error?: string }> => {
   try {
+    console.log(`🔄 Atualizando treino ${treinoId} com feedback:`, exercicios.map(ex => ({ nome: ex.nome, peso: ex.peso, reps: ex.reps })));
     const headers = await getAuthHeaders();
     
     const updateData = {
       exercises: exercicios.map(ex => ({
         id: ex.id,
         peso: ex.peso,
-        reps: 12,
+        reps: ex.reps || 12, // Usar reps do feedback ou 12 como padrão
         isCompleted: false
       }))
     };

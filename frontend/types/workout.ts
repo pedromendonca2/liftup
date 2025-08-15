@@ -6,6 +6,7 @@ export interface Exercicio {
   id: string;
   nome: string;
   peso: number;
+  reps?: number; // Número de repetições realizadas
 }
 
 export interface Treino {

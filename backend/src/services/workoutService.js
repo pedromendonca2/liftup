@@ -146,8 +146,12 @@ async function updateWorkout(workoutId, userId, updateData) {
 
   // Se há exercícios para atualizar
   if (updateData.exercises) {
+    console.log('🔄 Atualizando exercícios do treino:', workoutId);
+    console.log('📝 Dados dos exercícios:', updateData.exercises);
+    
     // Atualizar cada exercício
     for (const exercise of updateData.exercises) {
+      console.log(`📊 Atualizando exercício ${exercise.id}: peso=${exercise.peso}, reps=${exercise.reps}`);
       await prisma.workoutExercise.updateMany({
         where: {
           workoutId: workoutId,
