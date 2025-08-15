@@ -7,9 +7,18 @@ const workoutService = require('../services/workoutService');
  */
 async function createWorkout(req, res) {
   try {
-    // Assume-se que o ID do usuário e o nome do treino vêm no corpo da requisição
-    const { name, userId } = req.body;
-    const workout = await workoutService.createWorkout({ name, userId });
+    // O ID do usuário vem do token JWT (via authMiddleware)
+    const userId = req.user.id;
+    const { name, description, targetMuscleGroup, exercises } = req.body;
+    
+    const workout = await workoutService.createWorkout({ 
+      name, 
+      description, 
+      targetMuscleGroup, 
+      userId,
+      exercises 
+    });
+    
     res.status(201).json(workout);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -17,13 +26,44 @@ async function createWorkout(req, res) {
 }
 
 /**
- * Controller para buscar os treinos de um usuário.
+ * Controller para buscar os treinos do usuário autenticado.
  */
 async function getWorkouts(req, res) {
   try {
-    const userId = parseInt(req.params.userId, 10);
+    const userId = req.user.id; // ID vem do token JWT
     const workouts = await workoutService.getWorkoutsByUser(userId);
     res.status(200).json(workouts);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+}
+
+/**
+ * Controller para atualizar um treino.
+ */
+async function updateWorkout(req, res) {
+  try {
+    const userId = req.user.id;
+    const workoutId = parseInt(req.params.workoutId, 10);
+    const updateData = req.body;
+    
+    const workout = await workoutService.updateWorkout(workoutId, userId, updateData);
+    res.status(200).json(workout);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+}
+
+/**
+ * Controller para deletar um treino.
+ */
+async function deleteWorkout(req, res) {
+  try {
+    const userId = req.user.id;
+    const workoutId = parseInt(req.params.workoutId, 10);
+    
+    await workoutService.deleteWorkout(workoutId, userId);
+    res.status(200).json({ message: 'Treino deletado com sucesso' });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -32,4 +72,6 @@ async function getWorkouts(req, res) {
 module.exports = {
   createWorkout,
   getWorkouts,
+  updateWorkout,
+  deleteWorkout,
 };

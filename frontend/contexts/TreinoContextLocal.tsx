@@ -1,3 +1,4 @@
+import * as WorkoutService from '@/services/workoutService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Exercicio, Treino, TreinoLetter } from '../types/workout';
@@ -44,17 +45,44 @@ export const TreinoProvider: React.FC<TreinoProviderProps> = ({ children }) => {
     return null; // Todos os slots estão ocupados
   };
 
-  // Carregar treinos do AsyncStorage
+  // Carregar treinos da API e AsyncStorage como backup
   const loadTreinos = async () => {
     try {
       setIsLoading(true);
-      const treinosData = await AsyncStorage.getItem(STORAGE_KEY);
-      if (treinosData) {
-        const parsedTreinos = JSON.parse(treinosData);
-        setTreinos(parsedTreinos);
+      const result = await WorkoutService.getTreinos();
+      
+      if (result.success && result.data) {
+        // Converter array de treinos para formato do contexto
+        const treinosMap: { [key in TreinoLetter]: Treino | null } = {
+          A: null,
+          B: null,
+          C: null,
+          D: null
+        };
+        
+        result.data.forEach((treino, index) => {
+          const letter = ['A', 'B', 'C', 'D'][index] as TreinoLetter;
+          if (letter) {
+            treinosMap[letter] = treino;
+          }
+        });
+        
+        setTreinos(treinosMap);
+        // Também salvar local para backup
+        await saveTreinos(treinosMap);
       }
     } catch (error) {
-      console.error('Erro ao carregar treinos:', error);
+      console.error('Erro ao carregar treinos da API:', error);
+      // Em caso de erro, tenta carregar do storage local
+      try {
+        const treinosData = await AsyncStorage.getItem(STORAGE_KEY);
+        if (treinosData) {
+          const parsedTreinos = JSON.parse(treinosData);
+          setTreinos(parsedTreinos);
+        }
+      } catch (localError) {
+        console.error('Erro ao carregar treinos locais:', localError);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +97,7 @@ export const TreinoProvider: React.FC<TreinoProviderProps> = ({ children }) => {
     }
   };
 
-  // Criar novo treino
+  // Criar novo treino via API
   const createNewTreino = async (nome: string, exercicios: Exercicio[]): Promise<Treino> => {
     const nextLetter = getNextAvailableLetter();
     
@@ -77,24 +105,27 @@ export const TreinoProvider: React.FC<TreinoProviderProps> = ({ children }) => {
       throw new Error('Todos os slots de treino (A-D) estão ocupados');
     }
     
-    const newTreino: Treino = {
-      id: Date.now().toString(),
-      nome: nome,
-      letra: nextLetter,
-      exercicios: exercicios,
-      dataCriacao: new Date().toISOString(),
-      ultimaExecucao: null,
-    };
+    try {
+      // Criar treino via API
+      const result = await WorkoutService.createTreino(nome, exercicios, nextLetter);
+      
+      if (result.success && result.data) {
+        const updatedTreinos = {
+          ...treinos,
+          [nextLetter]: result.data,
+        };
 
-    const updatedTreinos = {
-      ...treinos,
-      [nextLetter]: newTreino,
-    };
-
-    setTreinos(updatedTreinos);
-    await saveTreinos(updatedTreinos);
-    
-    return newTreino;
+        setTreinos(updatedTreinos);
+        await saveTreinos(updatedTreinos);
+        
+        return result.data;
+      } else {
+        throw new Error(result.error || 'Erro ao criar treino');
+      }
+    } catch (error) {
+      console.error('Erro ao criar treino:', error);
+      throw error;
+    }
   };
 
   // Marcar treino como completado
@@ -116,34 +147,61 @@ export const TreinoProvider: React.FC<TreinoProviderProps> = ({ children }) => {
     await saveTreinos(updatedTreinos);
   };
 
-  // Deletar treino
+  // Deletar treino via API
   const deleteTreino = async (letter: TreinoLetter) => {
-    const updatedTreinos = {
-      ...treinos,
-      [letter]: null,
-    };
+    const treino = treinos[letter];
+    if (!treino) return;
 
-    setTreinos(updatedTreinos);
-    await saveTreinos(updatedTreinos);
+    try {
+      // Deletar via API
+      const result = await WorkoutService.deleteTreino(treino.id);
+      
+      if (result.success) {
+        const updatedTreinos = {
+          ...treinos,
+          [letter]: null,
+        };
+
+        setTreinos(updatedTreinos);
+        await saveTreinos(updatedTreinos);
+      } else {
+        throw new Error(result.error || 'Erro ao deletar treino');
+      }
+    } catch (error) {
+      console.error('Erro ao deletar treino:', error);
+      throw error;
+    }
   };
 
-  // Atualizar exercícios de um treino
+  // Atualizar exercícios de um treino via API
   const updateTreinoExercicios = async (letter: TreinoLetter, exercicios: Exercicio[]) => {
     const treino = treinos[letter];
     if (!treino) return;
 
-    const updatedTreino = {
-      ...treino,
-      exercicios: exercicios,
-    };
+    try {
+      // Atualizar via API
+      const result = await WorkoutService.updateTreinoExercicios(treino.id, exercicios);
+      
+      if (result.success) {
+        const updatedTreino = {
+          ...treino,
+          exercicios: exercicios,
+        };
 
-    const updatedTreinos = {
-      ...treinos,
-      [letter]: updatedTreino,
-    };
+        const updatedTreinos = {
+          ...treinos,
+          [letter]: updatedTreino,
+        };
 
-    setTreinos(updatedTreinos);
-    await saveTreinos(updatedTreinos);
+        setTreinos(updatedTreinos);
+        await saveTreinos(updatedTreinos);
+      } else {
+        throw new Error(result.error || 'Erro ao atualizar treino');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar treino:', error);
+      throw error;
+    }
   };
 
   // Carregar treinos na inicialização
