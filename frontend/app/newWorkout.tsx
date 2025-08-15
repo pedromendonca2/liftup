@@ -125,22 +125,25 @@ export default function NewWorkoutScreen() {
     }
 
     try {
-      const success = await createNewTreino(
+      const newTreino = await createNewTreino(
         treinoName || 'Novo Treino',
         exercicios
       );
 
-      if (success) {
+      if (newTreino) {
+        console.log('Treino criado com sucesso:', newTreino);
         // Limpar formulário e voltar
         setTreinoName('');
         setExercicios([]);
         setSelectedWorkoutType('');
         setWorkoutLoad('');
+        Alert.alert('Sucesso!', `Treino "${newTreino.nome}" criado com sucesso!`);
         router.back();
       }
     } catch (error) {
       console.error('Erro ao criar treino:', error);
-      Alert.alert('Erro', 'Erro inesperado ao criar treino');
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      Alert.alert('Erro', `Erro ao criar treino: ${errorMessage}`);
     }
   };
 

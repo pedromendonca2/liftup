@@ -49,6 +49,10 @@ export const TreinoProvider: React.FC<TreinoProviderProps> = ({ children }) => {
   const loadTreinos = async () => {
     try {
       setIsLoading(true);
+      
+      // Teste de conectividade primeiro
+      await WorkoutService.testConnection();
+      
       const result = await WorkoutService.getTreinos();
       
       if (result.success && result.data) {

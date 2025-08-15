@@ -46,6 +46,7 @@ export default function HomeScreen() {
 
   // Recarregar treinos quando a tela for focada
   useEffect(() => {
+    console.log('Home - usuário autenticado:', isAuthenticated);
     loadTreinos();
   }, []);
 

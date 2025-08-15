@@ -1,14 +1,34 @@
 import { Exercicio, Treino, TreinoLetter } from '@/types/workout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://172.20.173.132:3000';
+
+console.log('WorkoutService - API_URL configurada:', API_URL);
+
+// Função de teste de conectividade
+export const testConnection = async (): Promise<void> => {
+  try {
+    console.log('🔗 Testando conectividade com backend...');
+    const response = await fetch(`${API_URL}/api/workouts`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    console.log('✅ Conectividade OK - status:', response.status);
+  } catch (error) {
+    console.error('❌ Erro de conectividade:', error);
+  }
+};
 
 // Função para obter o token de autenticação
 const getAuthToken = async (): Promise<string | null> => {
   try {
-    return await AsyncStorage.getItem('@LiftUp:authToken');
+    const token = await AsyncStorage.getItem('@LiftUp:authToken');
+    if (!token) {
+      console.warn('⚠️ Token de autenticação não encontrado');
+    }
+    return token;
   } catch (error) {
-    console.error('Erro ao buscar token:', error);
+    console.error('❌ Erro ao buscar token:', error);
     return null;
   }
 };
@@ -25,6 +45,7 @@ const getAuthHeaders = async () => {
 // Função para criar um novo treino via API
 export const createTreino = async (nome: string, exercicios: Exercicio[], letra: TreinoLetter): Promise<{ success: boolean; data?: Treino; error?: string }> => {
   try {
+    console.log(`🏋️ Criando treino: ${nome} com ${exercicios.length} exercícios`);
     const headers = await getAuthHeaders();
     
     const workoutData = {
@@ -46,10 +67,13 @@ export const createTreino = async (nome: string, exercicios: Exercicio[], letra:
     });
 
     if (!response.ok) {
-      throw new Error('Erro ao criar treino no servidor');
+      const errorText = await response.text();
+      console.error(`❌ Erro ao criar treino: ${response.status} - ${errorText}`);
+      throw new Error(`Erro ao criar treino no servidor: ${response.status} - ${errorText}`);
     }
 
     const backendWorkout = await response.json();
+    console.log('✅ Treino criado com sucesso no backend!');
     
     // Transformar resposta do backend para formato do frontend
     const frontendWorkout: Treino = {
@@ -71,6 +95,7 @@ export const createTreino = async (nome: string, exercicios: Exercicio[], letra:
 // Função para buscar todos os treinos via API
 export const getTreinos = async (): Promise<{ success: boolean; data?: Treino[]; error?: string }> => {
   try {
+    console.log('📋 Buscando treinos do usuário...');
     const headers = await getAuthHeaders();
     
     const response = await fetch(`${API_URL}/api/workouts`, {
@@ -79,6 +104,8 @@ export const getTreinos = async (): Promise<{ success: boolean; data?: Treino[];
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ Erro ao buscar treinos: ${response.status} - ${errorText}`);
       throw new Error('Erro ao buscar treinos do servidor');
     }
 

@@ -22,14 +22,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // A URL agora é lida a partir das variáveis de ambiente do Expo.
 // Certifique-se de que seu arquivo .env na raiz do frontend contém a linha:
 // EXPO_PUBLIC_API_URL=http://SEU_IP_DE_REDE:3000
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://172.20.173.132:3000';
 
-// Validação para garantir que a variável de ambiente foi definida.
-if (!API_URL) {
-  throw new Error(
-    'A variável de ambiente EXPO_PUBLIC_API_URL não está definida. Por favor, crie um arquivo .env na pasta do frontend e adicione a URL da sua API.'
-  );
-}
+// API_URL definida com fallback para o IP local
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -40,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadToken = async () => {
       try {
-        const token = await AsyncStorage.getItem('authToken');
+        const token = await AsyncStorage.getItem('@LiftUp:authToken');
         if (token) {
           setIsAuthenticated(true);
         }
@@ -75,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data.token) {
         // Usa AsyncStorage para salvar o token
-        await AsyncStorage.setItem('authToken', data.token);
+        await AsyncStorage.setItem('@LiftUp:authToken', data.token);
         setIsAuthenticated(true);
         return null; // Sucesso
       }
@@ -112,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       // (Opcional) Login automático após registro:
       if (data.token) {
-        await AsyncStorage.setItem('authToken', data.token);
+        await AsyncStorage.setItem('@LiftUp:authToken', data.token);
         setIsAuthenticated(true);
         return null;
       }
@@ -127,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       // Usa AsyncStorage para remover o token
-      await AsyncStorage.removeItem('authToken');
+      await AsyncStorage.removeItem('@LiftUp:authToken');
       setIsAuthenticated(false);
     } catch (e) {
       console.error('Falha ao fazer logout.', e);
