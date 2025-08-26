@@ -1,5 +1,8 @@
 {
   "dependencies": {
     "@react-native-picker/picker": "^2.11.1"
+  },
+  "devDependencies": {
+    "typedoc": "^0.28.10"
   }
 }

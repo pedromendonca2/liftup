@@ -25,18 +25,14 @@ export default function RegisterScreen() {
       email: '',
       password: '',
       confirm_password: '',
+      height: '',
+      weight: '',
     }
   });
 
   const handleRegister = async (data: RegisterFormData) => {
-    const payload = {
-      ...data,
-      age: Number(data.age),
-      height: Number(data.height),
-      weight: Number(data.weight),
-    };
     try {
-      const response = await register(payload);
+      const response = await register(data);
       if (response?.error) {
         Alert.alert('Erro', response.errorMessage || 'Erro ao registrar');
         return;
@@ -198,8 +194,7 @@ export default function RegisterScreen() {
               placeholder="Idade"
               onBlur={onBlur}
               onChangeText={onChange}
-              value={value ? String(value) : ''}
-              keyboardType="numeric"
+              value={value}
             />
             {errors.age && <Text style={styles.errorText}>{errors.age.message}</Text>}
           </View>

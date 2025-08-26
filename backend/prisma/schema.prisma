@@ -18,10 +18,10 @@ model User {
   email     String   @unique
   password  String
   name      String?
-  age       Int?
+  age       String?
   sex       Sex?
-  height    Float?
-  weight    Float?
+  height    String?
+  weight    String?
   workouts  Workout[]
 }
 

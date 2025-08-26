@@ -105,7 +105,6 @@ export const getTreinos = async (): Promise<{ success: boolean; data?: Treino[];
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`❌ Erro ao buscar treinos: ${response.status} - ${errorText}`);
       throw new Error('Erro ao buscar treinos do servidor');
     }
 
@@ -123,7 +122,6 @@ export const getTreinos = async (): Promise<{ success: boolean; data?: Treino[];
 
     return { success: true, data: frontendWorkouts };
   } catch (error) {
-    console.error('Erro ao buscar treinos:', error);
     return { success: false, error: 'Erro ao buscar treinos' };
   }
 };

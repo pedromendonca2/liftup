@@ -68,7 +68,17 @@ Como o banco de dados é criado vazio tem que ser populado com os dados iniciais
 1. Registrar um novo usuário:
 
 ```bash
-curl -X POST http://localhost:3000/register -H "Content-Type: application/json" -d '{"email": "teste@teste.com", "password": "123456"}'
+curl -X POST http://localhost:3000/register \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "Seu Nome Completo",
+  "email": "teste@teste.com",
+  "password": "123456",
+  "age": 30,
+  "sex": "MASCULINO",
+  "height": 1.75,
+  "weight": 80
+}'
 ```
 
 2. Fazer login:
