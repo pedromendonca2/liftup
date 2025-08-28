@@ -45,6 +45,50 @@ O projeto utiliza [TypeDoc](https://typedoc.org/) para gerar documentação auto
 
 A documentação será gerada na pasta `docs/`, podendo ser visualizada ao abrir o arquivo `docs/index.html`.
 
+## Testes
+O projeto utiliza **Jest** como framework de testes para garantir a qualidade do código tanto no frontend quanto no backend.
+
+### 📊 Status dos Testes
+- **Frontend**: 4 testes passando ✅
+- **Backend**: 18 testes passando ✅
+- **Total**: 22 testes funcionando
+
+### 🧪 Executar Testes
+
+**Frontend (React Native/Expo):**
+```bash
+cd frontend
+npm test
+```
+
+**Backend (Node.js/Express):**
+```bash
+cd backend
+npm test
+```
+
+**Backend com cobertura de código:**
+```bash
+cd backend
+npm run test:coverage
+```
+
+**Backend em modo watch (re-executa quando arquivos mudam):**
+```bash
+cd backend
+npm run test:watch
+```
+
+### 📁 Estrutura dos Testes
+- **Frontend**: Testes de componentes React Native com mocks do Expo
+- **Backend**: Testes unitários, de integração e básicos
+  - `tests/basic.test.js` - Testes básicos do Jest
+  - `tests/userService.test.js` - Testes do serviço de usuários
+  - `tests/userController.test.js` - Testes do controller de usuários
+  - `tests/app.test.js` - Testes de integração da API
+
+Para mais detalhes sobre os testes do backend, consulte [`backend/TESTING.md`](./backend/TESTING.md).
+
 ## Como executar
 1. Clone o repositório
 
