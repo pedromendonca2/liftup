@@ -2,7 +2,7 @@
 
       [x] Diagrama de classes do domínio do problema;
       [x] Ferramentas escolhidas (Git, build, testes, issue tracking, CI/CD, container);
-      [?] Frameworks reutilizados;
+      [X] Frameworks reutilizados;
       [x] Como gerar a documentação do código (ex.: JavaDoc);
       [x] Como executar o sistema.
 
