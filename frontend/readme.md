@@ -1,4 +1,95 @@
-# Frontend do projeto LiftUp
+# 🏋️ LiftUp Frontend
+
+Aplicativo mobile de treinos desenvolvido com React Native e Expo.
+
+## 🚀 Como executar
+
+### Desenvolvimento com Expo Go
+```bash
+npm install
+npm start
+```
+
+### Build para produção
+Consulte o [Guia de Build](../BUILD_GUIDE.md) para instruções completas.
+
+```bash
+# APK para testes
+npm run build:android:preview
+
+# AAB para Play Store
+npm run build:android:production
+```
+
+## 📱 Funcionalidades
+
+- ✅ Autenticação de usuários
+- ✅ Criação e gerenciamento de treinos
+- ✅ Interface adaptativa (light/dark theme)
+- ✅ Armazenamento local com AsyncStorage
+- ✅ Sincronização com API backend
+- ✅ Navegação com Expo Router
+
+## 🛠️ Tecnologias
+
+- **React Native** - Framework mobile
+- **Expo** - Plataforma de desenvolvimento
+- **TypeScript** - Tipagem estática
+- **Expo Router** - Navegação baseada em arquivos
+- **AsyncStorage** - Persistência local
+- **React Hook Form** - Gerenciamento de formulários
+
+## 📁 Estrutura do Projeto
+
+```
+frontend/
+├── app/                    # Rotas da aplicação
+│   ├── (tabs)/            # Abas principais
+│   ├── login.tsx          # Tela de login
+│   ├── register.tsx       # Tela de cadastro
+│   └── newWorkout.tsx     # Criação de treinos
+├── components/            # Componentes reutilizáveis
+├── contexts/              # Contextos do React
+├── services/              # Serviços de API
+├── types/                 # Definições TypeScript
+└── assets/               # Recursos estáticos
+```
+
+## 🔧 Configuração
+
+### Variáveis de Ambiente
+Copie `.env.example` para `.env` e configure:
+
+```env
+EXPO_PUBLIC_API_URL=http://seu-ip:3000
+```
+
+### Configuração do Backend
+Certifique-se de que o backend esteja rodando na URL configurada.
+
+## 📋 Scripts Disponíveis
+
+```bash
+npm start                    # Servidor de desenvolvimento
+npm run android             # Abre no Android
+npm run ios                 # Abre no iOS
+npm run web                 # Abre no navegador
+npm run lint                # Linting do código
+npm run build:android:preview    # Build APK
+npm run build:android:production # Build AAB
+```
+
+## 🏗️ Deploy
+
+Para fazer deploy na Play Store, siga o [Guia de Build](../BUILD_GUIDE.md).
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request do projeto LiftUp
 
 Este diretório contém a aplicação móvel (frontend) do projeto LiftUp. O projeto foi desenvolvido com [React Native](https://reactnative.dev/) e [Expo](https://expo.dev/), garantindo um fluxo de desenvolvimento rápido e multiplataforma.
 
