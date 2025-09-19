@@ -1,180 +1,119 @@
 import { Exercicio, Treino, TreinoLetter } from '@/types/workout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://172.20.173.132:3000';
+const STORAGE_KEY = '@LiftUp:treinos';
 
-console.log('WorkoutService - API_URL configurada:', API_URL);
-
-// Função de teste de conectividade
+// No-op in offline mode
 export const testConnection = async (): Promise<void> => {
+  return;
+};
+
+type TreinosMap = { [key in TreinoLetter]: Treino | null };
+
+const emptyTreinosMap = (): TreinosMap => ({ A: null, B: null, C: null, D: null });
+
+const readTreinosMap = async (): Promise<TreinosMap> => {
   try {
-    console.log('🔗 Testando conectividade com backend...');
-    const response = await fetch(`${API_URL}/api/workouts`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    console.log('✅ Conectividade OK - status:', response.status);
+    const stored = await AsyncStorage.getItem(STORAGE_KEY);
+    if (!stored) return emptyTreinosMap();
+    const parsed = JSON.parse(stored);
+    return {
+      A: parsed.A ?? null,
+      B: parsed.B ?? null,
+      C: parsed.C ?? null,
+      D: parsed.D ?? null,
+    } as TreinosMap;
   } catch (error) {
-    console.error('❌ Erro de conectividade:', error);
+    console.error('Erro ao ler treinos do AsyncStorage:', error);
+    return emptyTreinosMap();
   }
 };
 
-// Função para obter o token de autenticação
-const getAuthToken = async (): Promise<string | null> => {
+const writeTreinosMap = async (map: TreinosMap): Promise<void> => {
   try {
-    const token = await AsyncStorage.getItem('@LiftUp:authToken');
-    if (!token) {
-      console.warn('⚠️ Token de autenticação não encontrado');
-    }
-    return token;
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(map));
   } catch (error) {
-    console.error('❌ Erro ao buscar token:', error);
-    return null;
+    console.error('Erro ao salvar treinos no AsyncStorage:', error);
   }
 };
 
-// Função para criar headers com autenticação
-const getAuthHeaders = async () => {
-  const token = await getAuthToken();
-  return {
-    'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-};
-
-// Função para criar um novo treino via API
-export const createTreino = async (nome: string, exercicios: Exercicio[], letra: TreinoLetter): Promise<{ success: boolean; data?: Treino; error?: string }> => {
+export const createTreino = async (
+  nome: string,
+  exercicios: Exercicio[],
+  letra: TreinoLetter
+): Promise<{ success: boolean; data?: Treino; error?: string }> => {
   try {
-    console.log(`🏋️ Criando treino: ${nome} com ${exercicios.length} exercícios`);
-    const headers = await getAuthHeaders();
-    
-    const workoutData = {
-      name: nome,
-      description: null,
-      targetMuscleGroup: null,
-      exercises: exercicios.map(ex => ({
-        name: ex.nome,
-        peso: ex.peso,
-        reps: ex.reps || 12, // Usar reps do exercício ou 12 como padrão
-        targetMuscle: null
-      }))
-    };
-
-    const response = await fetch(`${API_URL}/api/workouts`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(workoutData)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`❌ Erro ao criar treino: ${response.status} - ${errorText}`);
-      throw new Error(`Erro ao criar treino no servidor: ${response.status} - ${errorText}`);
-    }
-
-    const backendWorkout = await response.json();
-    console.log('✅ Treino criado com sucesso no backend!');
-    
-    // Transformar resposta do backend para formato do frontend
-    const frontendWorkout: Treino = {
-      id: backendWorkout.id.toString(),
-      nome: backendWorkout.name,
-      letra: letra,
-      exercicios: backendWorkout.exercicios || [],
-      dataCriacao: backendWorkout.createdAt,
+    const treinosMap = await readTreinosMap();
+    const newTreino: Treino = {
+      id: Date.now().toString(),
+      nome,
+      letra,
+      exercicios: exercicios.map(ex => ({ id: ex.id, nome: ex.nome, peso: ex.peso, reps: ex.reps })),
+      dataCriacao: new Date().toISOString(),
       ultimaExecucao: null,
     };
 
-    return { success: true, data: frontendWorkout };
+    treinosMap[letra] = newTreino;
+    await writeTreinosMap(treinosMap);
+    return { success: true, data: newTreino };
   } catch (error) {
-    console.error('Erro ao criar treino:', error);
+    console.error('Erro ao criar treino (local):', error);
     return { success: false, error: 'Erro ao criar treino' };
   }
 };
 
-// Função para buscar todos os treinos via API
 export const getTreinos = async (): Promise<{ success: boolean; data?: Treino[]; error?: string }> => {
   try {
-    console.log('📋 Buscando treinos do usuário...');
-    const headers = await getAuthHeaders();
-    
-    const response = await fetch(`${API_URL}/api/workouts`, {
-      method: 'GET',
-      headers,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error('Erro ao buscar treinos do servidor');
-    }
-
-    const backendWorkouts = await response.json();
-    
-    // Transformar resposta do backend para formato do frontend
-    const frontendWorkouts: Treino[] = backendWorkouts.map((workout: any, index: number) => ({
-      id: workout.id.toString(),
-      nome: workout.name,
-      letra: ['A', 'B', 'C', 'D'][index % 4] as TreinoLetter, // Mapear para letras sequenciais
-      exercicios: workout.exercicios || [],
-      dataCriacao: workout.createdAt,
-      ultimaExecucao: null,
-    }));
-
-    return { success: true, data: frontendWorkouts };
+    const treinosMap = await readTreinosMap();
+    const orderedLetters: TreinoLetter[] = ['A', 'B', 'C', 'D'];
+    const list: Treino[] = orderedLetters
+      .map(letter => treinosMap[letter])
+      .filter((t): t is Treino => t !== null);
+    return { success: true, data: list };
   } catch (error) {
+    console.error('Erro ao buscar treinos (local):', error);
     return { success: false, error: 'Erro ao buscar treinos' };
   }
 };
 
-// Função para deletar um treino via API
 export const deleteTreino = async (treinoId: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    const headers = await getAuthHeaders();
-    
-    const response = await fetch(`${API_URL}/api/workouts/${treinoId}`, {
-      method: 'DELETE',
-      headers,
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao deletar treino no servidor');
+    const treinosMap = await readTreinosMap();
+    const letters: TreinoLetter[] = ['A', 'B', 'C', 'D'];
+    for (const letter of letters) {
+      if (treinosMap[letter]?.id === treinoId) {
+        treinosMap[letter] = null;
+        break;
+      }
     }
-
+    await writeTreinosMap(treinosMap);
     return { success: true };
   } catch (error) {
-    console.error('Erro ao deletar treino:', error);
+    console.error('Erro ao deletar treino (local):', error);
     return { success: false, error: 'Erro ao deletar treino' };
   }
 };
 
-// Função para atualizar exercícios de um treino via API
-export const updateTreinoExercicios = async (treinoId: string, exercicios: Exercicio[]): Promise<{ success: boolean; error?: string }> => {
+export const updateTreinoExercicios = async (
+  treinoId: string,
+  exercicios: Exercicio[]
+): Promise<{ success: boolean; error?: string }> => {
   try {
-    console.log(`🔄 Atualizando treino ${treinoId} com feedback:`, exercicios.map(ex => ({ nome: ex.nome, peso: ex.peso, reps: ex.reps })));
-    const headers = await getAuthHeaders();
-    
-    const updateData = {
-      exercises: exercicios.map(ex => ({
-        id: ex.id,
-        peso: ex.peso,
-        reps: ex.reps || 12, // Usar reps do feedback ou 12 como padrão
-        isCompleted: false
-      }))
-    };
-
-    const response = await fetch(`${API_URL}/api/workouts/${treinoId}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(updateData)
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao atualizar treino no servidor');
+    const treinosMap = await readTreinosMap();
+    const letters: TreinoLetter[] = ['A', 'B', 'C', 'D'];
+    for (const letter of letters) {
+      if (treinosMap[letter]?.id === treinoId) {
+        treinosMap[letter] = {
+          ...treinosMap[letter]!,
+          exercicios: exercicios.map(ex => ({ id: ex.id, nome: ex.nome, peso: ex.peso, reps: ex.reps })),
+        };
+        break;
+      }
     }
-
+    await writeTreinosMap(treinosMap);
     return { success: true };
   } catch (error) {
-    console.error('Erro ao atualizar treino:', error);
+    console.error('Erro ao atualizar treino (local):', error);
     return { success: false, error: 'Erro ao atualizar treino' };
   }
 };

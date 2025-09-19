@@ -1,17 +1,16 @@
 import { Picker } from '@react-native-picker/picker';
-import { Redirect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { ActivityIndicator, Alert, Animated, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { useAuth } from '@/contexts/AuthContext';
 import { useColorScheme, useTheme } from '@/contexts/ThemeContext';
 import { useTreino } from '@/contexts/TreinoContextLocal';
 import { useEffect, useRef, useState } from 'react';
 
 export default function HomeScreen() {
-  const { logout, isAuthenticated } = useAuth();
+  
   const { toggleTheme } = useTheme();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
@@ -39,14 +38,10 @@ export default function HomeScreen() {
   const [currentWorkoutData, setCurrentWorkoutData] = useState<any>(null);
   const [feedbackData, setFeedbackData] = useState<{[key: string]: number | 'skip'}>({});
 
-  // Se não estiver autenticado, redireciona para login
-  if (!isAuthenticated) {
-    return <Redirect href="/login" />;
-  }
+  // Autenticação removida (modo local)
 
   // Recarregar treinos quando a tela for focada
   useEffect(() => {
-    console.log('Home - usuário autenticado:', isAuthenticated);
     loadTreinos();
   }, []);
 
@@ -239,11 +234,7 @@ export default function HomeScreen() {
     }).start();
   };
 
-  // Função para logout
-  const handleLogout = () => {
-    logout();
-    setIsDropdownOpen(false);
-  };
+  // Logout removido (modo local)
 
   const currentTreino = treinos[selectedTreino];
 
@@ -750,13 +741,7 @@ export default function HomeScreen() {
                 {/* Separador */}
                 <View style={styles.dropdownSeparator} />
                 
-                {/* Logout */}
-                <TouchableOpacity 
-                  style={styles.dropdownItem}
-                  onPress={handleLogout}
-                >
-                  <ThemedText style={[styles.dropdownItemText, { color: '#ff4444' }]}>Sair</ThemedText>
-                </TouchableOpacity>
+                {/* Logout removido */}
               </Animated.View>
             )}
           </View>
