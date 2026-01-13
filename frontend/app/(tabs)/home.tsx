@@ -4,6 +4,8 @@ import { ActivityIndicator, Alert, Animated, Modal, ScrollView, StyleSheet, Touc
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import AdBanner from '@/components/AdBanner';
+import { useInterstitialAd } from '@/components/AdInterstitial';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme, useTheme } from '@/contexts/ThemeContext';
 import { useTreino } from '@/contexts/TreinoContextLocal';
@@ -15,6 +17,7 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
+  const { showAd: showInterstitialAd } = useInterstitialAd();
   
   // Estado para controlar o dropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -37,6 +40,10 @@ export default function HomeScreen() {
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [currentWorkoutData, setCurrentWorkoutData] = useState<any>(null);
   const [feedbackData, setFeedbackData] = useState<{[key: string]: number | 'skip'}>({});
+  const [lastAdTime, setLastAdTime] = useState<{[key: string]: number}>({});
+  
+  // Configuração: mostrar anúncio a cada X segundos (padrão: 120s = 2min)
+  const AD_INTERVAL_SECONDS = 120;
 
   // Autenticação removida (modo local)
 
@@ -53,6 +60,14 @@ export default function HomeScreen() {
         Object.keys(updated).forEach(key => {
           if (updated[key].isRunning) {
             // Force re-render para atualizar o display do timer
+            const elapsedSeconds = Math.floor((Date.now() - updated[key].startTime) / 1000);
+            
+            // Verificar se deve mostrar anúncio
+            const lastAd = lastAdTime[key] || 0;
+            if (elapsedSeconds - lastAd >= AD_INTERVAL_SECONDS) {
+              showInterstitialAd();
+              setLastAdTime(prev => ({ ...prev, [key]: elapsedSeconds }));
+            }
           }
         });
         return updated;
@@ -60,7 +75,7 @@ export default function HomeScreen() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [lastAdTime, showInterstitialAd]);
 
   // Função para deletar treino
   const handleDeleteTreino = (letter: 'A' | 'B' | 'C' | 'D') => {
@@ -96,6 +111,9 @@ export default function HomeScreen() {
         elapsed: 0
       }
     }));
+    
+    // Resetar contador de anúncios para este treino
+    setLastAdTime(prev => ({ ...prev, [letter]: 0 }));
   };
 
   const stopTimer = (letter: string) => {
@@ -143,11 +161,48 @@ export default function HomeScreen() {
     return formatTime(elapsed);
   };
 
-  // Função para calcular novo peso baseado na fórmula
-  const calculateNewWeight = (currentWeight: number, reps: number): number => {
+  // Função auxiliar para arredondar peso baseado em incrementos realistas
+  const roundToIncrement = (weight: number): number => {
+    if (weight < 10) return Math.round(weight * 4) / 4; // 0.25kg para pesos leves
+    if (weight < 50) return Math.round(weight * 2) / 2; // 0.5kg para pesos médios
+    return Math.round(weight / 2.5) * 2.5; // 2.5kg para pesos pesados
+  };
+
+  // Função para calcular novo peso baseado em zonas de repetições
+  const calculateNewWeight = (
+    currentWeight: number, 
+    reps: number,
+    exerciseType: 'big' | 'small' = 'big'
+  ): number => {
     if (reps <= 0) return currentWeight;
-    const newWeight = (currentWeight / (1.0278 - (0.0278 * reps)))*0.85;
-    return Math.round(newWeight * 10) / 10; // Arredondar para 2 casas decimais
+    
+    // Incrementos fixos: 2.5kg para exercícios grandes, 1kg para pequenos
+    const increment = exerciseType === 'big' ? 2.5 : 1;
+    
+    // 15+ reps: aumentar 2 incrementos (muitas reps = muito fácil)
+    if (reps >= 15) {
+      return roundToIncrement(currentWeight + (increment * 2));
+    }
+    // 13-14 reps: aumentar 1 incremento (bom desempenho)
+    else if (reps >= 13) {
+      return roundToIncrement(currentWeight + increment);
+    }
+    // 10-12 reps: aumentar meio incremento (zona ideal, progressão conservadora)
+    else if (reps >= 10) {
+      return roundToIncrement(currentWeight + (increment * 0.5));
+    }
+    // 8-9 reps: manter (zona de força, peso adequado)
+    else if (reps >= 8) {
+      return currentWeight;
+    }
+    // 6-7 reps: reduzir meio incremento (um pouco pesado)
+    else if (reps >= 6) {
+      return roundToIncrement(currentWeight - (increment * 0.5));
+    }
+    // Menos de 6: reduzir 1 incremento (muito pesado)
+    else {
+      return roundToIncrement(currentWeight - increment);
+    }
   };
 
   // Função para processar feedback e atualizar pesos
@@ -882,6 +937,8 @@ export default function HomeScreen() {
           </ThemedView>
         </View>
       </Modal>
+      
+      <AdBanner />
     </View>
   );
 }
