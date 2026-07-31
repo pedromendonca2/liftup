@@ -5,7 +5,7 @@ import { useTreino } from '@/contexts/TreinoContextLocal';
 import { Exercicio } from '@/types/workout';
 import { Picker } from '@react-native-picker/picker';
 import { Stack, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Alert,
   ScrollView,
@@ -28,7 +28,7 @@ export default function NewWorkoutScreen() {
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
 
   // Lista de equipamentos de musculação com carga
-  const workoutTypes = [
+  const workoutTypes = useMemo(() => [
     { label: 'Selecione um exercício', value: '' },
     
     // Máquinas para Membros Inferiores
@@ -83,33 +83,28 @@ export default function NewWorkoutScreen() {
     { label: 'Banco Supino Ajustável', value: 'banco_supino' },
     { label: 'Suporte para Agachamento (Squat Rack)', value: 'squat_rack' },
     { label: 'Power Cage', value: 'power_cage' },
-  ];
+  ], []);
 
   const handleSaveWorkout = () => {
-    // Encontra o nome do exercício selecionado
     const selectedType = workoutTypes.find(type => type.value === selectedWorkoutType);
     const exercicioName = selectedType ? selectedType.label : selectedWorkoutType;
+    const parsedLoad = Number(workoutLoad.replace(',', '.'));
 
-    // Cria novo exercício
     const newExercicio: Exercicio = {
-      id: Date.now().toString(), // ID único baseado no timestamp
+      id: `${Date.now()}-${selectedWorkoutType}`,
       nome: exercicioName,
-      peso: parseFloat(workoutLoad)
+      peso: parsedLoad,
     };
 
-    // Adiciona o exercício à lista
     setExercicios(prevExercicios => [...prevExercicios, newExercicio]);
-
     Alert.alert('Exercício adicionado!');
-    
-    // Limpa os campos após salvar
     setSelectedWorkoutType('');
     setWorkoutLoad('');
   };
 
-  // Função para verificar se o formulário está válido
   const isFormValid = () => {
-    return selectedWorkoutType !== '' && workoutLoad.trim() !== '';
+    const parsedLoad = Number(workoutLoad.replace(',', '.'));
+    return selectedWorkoutType !== '' && Number.isFinite(parsedLoad) && parsedLoad >= 0;
   };
 
   // Função para verificar se pode criar treino
@@ -130,16 +125,12 @@ export default function NewWorkoutScreen() {
         exercicios
       );
 
-      if (newTreino) {
-        console.log('Treino criado com sucesso:', newTreino);
-        // Limpar formulário e voltar
-        setTreinoName('');
-        setExercicios([]);
-        setSelectedWorkoutType('');
-        setWorkoutLoad('');
-        Alert.alert('Sucesso!', `Treino "${newTreino.nome}" criado com sucesso!`);
-        router.back();
-      }
+      setTreinoName('');
+      setExercicios([]);
+      setSelectedWorkoutType('');
+      setWorkoutLoad('');
+      Alert.alert('Sucesso!', `Treino "${newTreino.nome}" criado com sucesso!`);
+      router.back();
     } catch (error) {
       console.error('Erro ao criar treino:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -152,7 +143,7 @@ export default function NewWorkoutScreen() {
     setExercicios(prevExercicios => prevExercicios.filter(exercicio => exercicio.id !== id));
   };
 
-  const styles = StyleSheet.create({
+  const styles = useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -311,7 +302,7 @@ export default function NewWorkoutScreen() {
       backgroundColor: '#6c757d',
       opacity: 0.7,
     },
-  });
+  }), [colorScheme, colors]);
 
   return (
     <>
@@ -400,7 +391,7 @@ export default function NewWorkoutScreen() {
           <View style={styles.equipmentListSection}>
             <ThemedText style={styles.flatListTitle}>Exercícios Salvos ({exercicios.length})</ThemedText>
             {exercicios.length > 0 ? (
-              exercicios.map((item, index) => (
+              exercicios.map((item) => (
                 <View key={item.id} style={styles.flatListItem}>
                   <View style={styles.equipmentItemContent}>
                     <ThemedText style={styles.flatListItemText}>

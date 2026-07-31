@@ -4,20 +4,15 @@
     "slug": "liftup-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "assets/images/liftup-icon.jpg",
+    "icon": "./assets/images/liftup-icon.png",
     "scheme": "liftup",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "platforms": ["ios", "android"],
-    "privacy": "public",
-    "assetBundlePatterns": [
-      "**/*"
+    "platforms": [
+      "ios",
+      "android",
+      "web"
     ],
-    "splash": {
-      "image": "assets/images/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.liftup.app",
@@ -26,53 +21,34 @@
     "android": {
       "package": "com.liftup.app",
       "versionCode": 1,
-      "compileSdkVersion": 34,
-      "targetSdkVersion": 34,
       "adaptiveIcon": {
-        "foregroundImage": "assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/liftup-icon.png",
+        "backgroundColor": "#F8F8FF"
       },
-      "edgeToEdgeEnabled": true,
-      "permissions": [
-        "android.permission.INTERNET",
-        "android.permission.ACCESS_NETWORK_STATE",
-        "android.permission.VIBRATE",
-        "android.permission.WAKE_LOCK",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
-      ]
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "public/icon.png"
+      "favicon": "./assets/images/liftup-icon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "image": "./assets/images/liftup-icon.png",
+          "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      [
-        "react-native-google-mobile-ads",
-        {
-          "androidAppId": "ca-app-pub-9259866383940251~2793203697",
-          "iosAppId": "ca-app-pub-9259866383940251~2793203697"
+          "backgroundColor": "#F8F8FF",
+          "dark": {
+            "backgroundColor": "#151718"
+          }
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "your-project-id-here"
-      }
     }
   }
 }

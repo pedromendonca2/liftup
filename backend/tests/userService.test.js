@@ -27,7 +27,7 @@ describe('UserService', () => {
       email: 'joao@example.com',
       password: 'senha123',
       age: 25,
-      sex: 'M',
+      sex: 'MASCULINO',
       height: 180,
       weight: 75,
     };
@@ -59,7 +59,7 @@ describe('UserService', () => {
           password: 'hashedPassword123',
           name: 'João Silva',
           age: 25,
-          sex: 'M',
+          sex: 'MASCULINO',
           height: 180,
           weight: 75,
         },

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -18,58 +12,48 @@ model User {
   email     String   @unique
   password  String
   name      String?
-  age       String?
+  age       Int?
   sex       Sex?
-  height    String?
-  weight    String?
+  height    Float?
+  weight    Float?
   workouts  Workout[]
 }
 
-// Modelo para os Treinos criados pelos usuários
 model Workout {
   id                  Int                @id @default(autoincrement())
   name                String
   description         String?
-  targetMuscleGroup   String?            // "Conjunto muscular alvo"
+  targetMuscleGroup   String?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
-  // Relacionamento com o Usuário
-  user                User               @relation(fields: [userId], references: [id])
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId              Int
 
-  // Relacionamento com os Exercícios (via tabela de junção)
   exercises           WorkoutExercise[]
 }
 
-// Modelo para os Exercícios disponíveis
 model Exercise {
   id            Int                @id @default(autoincrement())
   name          String             @unique
-  targetMuscle  String?            // "Músculo Alvo"
+  targetMuscle  String?
   
-  // Relacionamento com os Treinos (via tabela de junção)
   workouts      WorkoutExercise[]
 }
 
-// Tabela de junção para o relacionamento Muitos-para-Muitos entre Workout e Exercise
-// Permite que um exercício esteja em vários treinos e vice-versa.
 model WorkoutExercise {
-  workout       Workout    @relation(fields: [workoutId], references: [id])
+  workout       Workout    @relation(fields: [workoutId], references: [id], onDelete: Cascade)
   workoutId     Int
-  exercise      Exercise   @relation(fields: [exerciseId], references: [id])
+  exercise      Exercise   @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
   exerciseId    Int
   
-  reps          Int        // "Repetições"
-  loadKg        Float      // "CargaKG"
-  isCompleted   Boolean    @default(false) // "Concluído"
+  reps          Int
+  loadKg        Float
+  isCompleted   Boolean    @default(false)
   
-  // Chave primária composta para garantir que cada exercício seja único por treino
   @@id([workoutId, exerciseId])
 }
 
-
-// Enum para o sexo biológico, mais descritivo que um Boolean
 enum Sex {
   MASCULINO
   FEMININO

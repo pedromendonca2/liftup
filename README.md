@@ -1,124 +1,122 @@
-# Documentação do LiftUp
+<p align="center">
+  <img src="./frontend/assets/images/liftup-icon.png" alt="Símbolo do LiftUp" width="132" />
+</p>
 
-      [x] Diagrama de classes do domínio do problema;
-      [x] Ferramentas escolhidas (Git, build, testes, issue tracking, CI/CD, container);
-      [X] Frameworks reutilizados;
-      [x] Como gerar a documentação do código (ex.: JavaDoc);
-      [x] Como executar o sistema.
+<h1 align="center">LiftUp</h1>
 
-# LiftUp [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/facebook/react/blob/main/LICENSE)
+<p align="center">
+  Um diário de treino mobile, offline-first, que transforma feedback de repetições em progressão de carga.
+</p>
 
-## Diagrama de classes do domínio
-> ![Diagrama de classes](./docs/diagrama-classes.png)
+<p align="center">
+  <a href="https://github.com/pedromendonca2/liftup/actions/workflows/frontend-ci.yml"><img src="https://github.com/pedromendonca2/liftup/actions/workflows/frontend-ci.yml/badge.svg" alt="Frontend CI" /></a>
+  <a href="https://github.com/pedromendonca2/liftup/actions/workflows/backend-ci.yml"><img src="https://github.com/pedromendonca2/liftup/actions/workflows/backend-ci.yml/badge.svg" alt="Backend CI" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-1f3a7a.svg" alt="Licença MIT" /></a>
+  <img src="https://img.shields.io/badge/Expo-53-000020?logo=expo&logoColor=white" alt="Expo 53" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" alt="TypeScript strict" />
+</p>
 
-## Ferramentas escolhidas
-- **Git & GitHub** – Controle de versão e hospedagem do código. Ideal para colaboração e CI/CD.
-- **TypeScript** – Tipagem estática para JavaScript, melhorando manutenção e evitando bugs.
-- **ESLint + eslint-config-expo** – Ferramentas de linting para manter a qualidade e padrão do código.
-- **Expo CLI** – Utilitário para build, preview e gerenciamento de pacotes.
-- **TypeDoc** – Gera documentação automática a partir de comentários no código TypeScript.
+O LiftUp concentra a rotina de musculação em um fluxo curto: monte divisões de treino, registre cargas, cronometre a sessão e informe quantas repetições conseguiu executar. Ao finalizar, o aplicativo aplica uma regra de progressão conservadora e prepara a carga da próxima sessão. Os dados ficam disponíveis no aparelho, sem cadastro e sem depender de conexão.
 
-## Frameworks reutilizados
-- **React Native** – Base do app mobile. Permite desenvolver para Android, iOS e Web com o mesmo código.
-- **Expo** – Framework que abstrai a complexidade do React Native puro. Facilita o build, preview e uso de APIs nativas.
-- **Expo Router** – Framework de roteamento baseado em arquivos, facilitando a navegação e organização de telas.
-- **React Navigation** – Biblioteca de navegação usada por trás do Expo Router. Permite uso de abas (`bottom-tabs`) e navegação declarativa.
-- **React** – Biblioteca principal para construção de interfaces com componentes.
-- **React Native Gesture Handler** e **Reanimated** – Usadas por baixo para interações fluidas e animações.
-- **Expo Modules** – Bibliotecas da família Expo adicionadas por necessidade ou por padrão:
-  - `expo-font`, `expo-status-bar`, `expo-haptics`, `expo-image`, `expo-splash-screen`, `expo-web-browser`, etc.
-  - A maioria dessas lida com funcionalidades nativas de forma simples (ex: haptics, splash, web browser).
+## O que o projeto entrega
 
-## Como gerar a documentação do código
-O projeto utiliza [TypeDoc](https://typedoc.org/) para gerar documentação automática a partir do código TypeScript.
+- Até quatro divisões de treino (A–D), com catálogo de equipamentos e cargas personalizadas.
+- Cronômetro por sessão e registro da última execução.
+- Progressão automática de carga baseada na faixa de repetições informada.
+- Persistência local com AsyncStorage e funcionamento offline.
+- Tema claro/escuro, navegação tipada e interface para Android, iOS e Web.
+- API complementar com autenticação JWT, CRUD de treinos, Prisma e PostgreSQL.
+- Verificações automatizadas de lint, tipos e testes em cada pull request.
 
-1. Instale a dependência
+## Stack
 
-   ```bash
-      npm install --save-dev typedoc
-   ```
+| Camada | Tecnologias | Responsabilidade |
+| --- | --- | --- |
+| Aplicativo | React Native, Expo Router, TypeScript | Experiência mobile e regras da sessão |
+| Persistência local | AsyncStorage | Uso imediato e offline-first |
+| API | Node.js, Express, JWT | Autenticação e operações de treino |
+| Dados da API | Prisma, PostgreSQL | Modelagem e persistência relacional |
+| Qualidade | ESLint, TypeScript, Jest, GitHub Actions | Feedback rápido e integração contínua |
 
-2. Gere a documentação do código
-   ```bash
-      npm run docs
-   ```
+O aplicativo funciona de forma independente com armazenamento local. O backend fica disponível como serviço complementar para a evolução de sincronização entre dispositivos, sem aumentar o atrito do primeiro uso.
 
-A documentação será gerada na pasta `docs/`, podendo ser visualizada ao abrir o arquivo `docs/index.html`.
+## Comece em poucos minutos
 
-## Testes
-O projeto utiliza **Jest** como framework de testes para garantir a qualidade do código tanto no frontend quanto no backend.
+Pré-requisitos: Node.js 20 ou superior, npm e [Expo Go](https://expo.dev/go) no dispositivo móvel.
 
-### 📊 Status dos Testes
-- **Frontend**: 4 testes passando ✅
-- **Backend**: 18 testes passando ✅
-- **Total**: 22 testes funcionando
-
-### 🧪 Executar Testes
-
-**Frontend (React Native/Expo):**
 ```bash
-cd frontend
-npm test
+git clone https://github.com/pedromendonca2/liftup.git
+cd liftup
+npm run setup
+npm run mobile
 ```
 
-**Backend (Node.js/Express):**
+Escaneie o QR code com o Expo Go. Também é possível abrir um destino diretamente:
+
 ```bash
+npm run mobile:android
+npm run mobile:ios
+npm run mobile:web
+```
+
+O app não exige `.env` nem backend para esse fluxo. Em redes nas quais o dispositivo não alcança o computador, use `npm --prefix frontend start -- --tunnel`.
+
+## API opcional
+
+Com Docker e Docker Compose instalados:
+
+```bash
+cp backend/.env.example backend/.env
 cd backend
-npm test
+docker compose up --build -d
+docker compose exec backend npx prisma db push
+curl http://localhost:3000/health
 ```
 
-**Backend com cobertura de código:**
+A resposta esperada é `{"status":"ok","service":"liftup-api"}`. As rotas principais são:
+
+| Método | Rota | Uso |
+| --- | --- | --- |
+| `POST` | `/api/auth/register` | Criar usuário |
+| `POST` | `/api/auth/login` | Obter token JWT |
+| `GET` | `/api/workouts` | Listar treinos autenticados |
+| `POST` | `/api/workouts` | Criar treino autenticado |
+| `PUT` | `/api/workouts/:id` | Atualizar treino |
+| `DELETE` | `/api/workouts/:id` | Excluir treino |
+
+Exemplos de payload e detalhes do ambiente estão em [backend/README.md](./backend/README.md).
+
+## Qualidade e desempenho
+
+Execute toda a verificação local com um comando:
+
 ```bash
-cd backend
-npm run test:coverage
+npm run check
 ```
 
-**Backend em modo watch (re-executa quando arquivos mudam):**
-```bash
-cd backend
-npm run test:watch
+O fluxo valida lint e TypeScript estrito no app, além dos testes do backend. No runtime, o projeto evita chamadas de rede no caminho principal, persiste somente dados compactos da rotina e mantém operações relacionais do backend dentro de transações.
+
+## Estrutura
+
+```text
+liftup/
+├── frontend/               # Aplicativo Expo/React Native
+│   ├── app/                # Rotas e telas
+│   ├── components/         # Componentes de interface
+│   ├── contexts/           # Estado, tema e persistência
+│   ├── services/           # Acesso ao armazenamento
+│   └── types/              # Contratos TypeScript
+├── backend/                # API Express e ambiente Docker
+│   ├── prisma/             # Schema do banco
+│   ├── src/                # Rotas, controllers e services
+│   └── tests/              # Testes automatizados
+├── docs/                   # Guias operacionais
+└── .github/workflows/      # Integração contínua
 ```
 
-### 📁 Estrutura dos Testes
-- **Frontend**: Testes de componentes React Native com mocks do Expo
-- **Backend**: Testes unitários, de integração e básicos
-  - `tests/basic.test.js` - Testes básicos do Jest
-  - `tests/userService.test.js` - Testes do serviço de usuários
-  - `tests/userController.test.js` - Testes do controller de usuários
-  - `tests/app.test.js` - Testes de integração da API
+## Build e contribuição
 
-Para mais detalhes sobre os testes do backend, consulte [`backend/TESTING.md`](./backend/TESTING.md).
+- Para gerar APK/AAB ou preparar uma publicação, consulte [docs/deployment.md](./docs/deployment.md).
+- Para propor uma alteração e conhecer os padrões do projeto, consulte [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-## Como executar
-1. Clone o repositório
-
-   ```bash
-   git clone https://github.com/pedromendonca2/liftup.git
-   cd liftup/
-   ```
-
-2. Instale as dependências do projeto
-
-   ```bash
-   npm install
-   ```
-
-3. Rode o servidor do app
-Após rodar o comando npx expo start, uma aba será aberta no navegador mostrando o QR Code, e também no terminal.
-
-   ```bash
-   npx expo start
-   ```
-
-Se estiver utilizando WSL (Windows Subsystem for Linux), é recomendável iniciar com tunelamento:
-   ```bash
-   npx expo start --tunnel
-   ```
-
-4. Abra o app no celular
-   - Instale o app Expo Go no seu celular
-   - Escaneie o QR Code
-
-## Licença
-
-LiftUp é licenciado por [MIT LICENSE](./LICENSE).
+Distribuído sob a [licença MIT](./LICENSE).

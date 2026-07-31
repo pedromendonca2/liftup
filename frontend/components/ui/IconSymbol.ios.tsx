@@ -1,32 +1,26 @@
-import { SymbolView, SymbolViewProps, SymbolWeight } from 'expo-symbols';
-import { StyleProp, ViewStyle } from 'react-native';
+import { StyleProp, Text, TextStyle } from 'react-native';
 
+type IconSymbolName = 'house.fill' | 'paperplane.fill' | 'chevron.left.forwardslash.chevron.right' | 'chevron.right';
+
+const SYMBOLS: Record<IconSymbolName, string> = {
+  'house.fill': '⌂',
+  'paperplane.fill': '➤',
+  'chevron.left.forwardslash.chevron.right': '‹/›',
+  'chevron.right': '›',
+};
+
+/** @deprecated A navegação atual não usa símbolos de abas. */
 export function IconSymbol({
   name,
   size = 24,
   color,
   style,
-  weight = 'regular',
 }: {
-  name: SymbolViewProps['name'];
+  name: IconSymbolName;
   size?: number;
   color: string;
-  style?: StyleProp<ViewStyle>;
-  weight?: SymbolWeight;
+  style?: StyleProp<TextStyle>;
+  weight?: string;
 }) {
-  return (
-    <SymbolView
-      weight={weight}
-      tintColor={color}
-      resizeMode="scaleAspectFit"
-      name={name}
-      style={[
-        {
-          width: size,
-          height: size,
-        },
-        style,
-      ]}
-    />
-  );
+  return <Text style={[{ color, fontSize: size }, style]}>{SYMBOLS[name]}</Text>;
 }

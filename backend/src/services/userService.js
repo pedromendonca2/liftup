@@ -1,15 +1,20 @@
-// backend/src/services/userService.js
-
-const prisma = require('../config/prisma');
 const bcrypt = require('bcrypt');
 
-/**
- * Cria um novo usuário no banco de dados.
- * @param {object} userData - Dados do usuário (name, email, password, age, sex, height, weight).
- * @returns {object} O usuário criado, sem a senha.
- */
+const prisma = require('../config/prisma');
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 async function createUser(userData) {
-  const { name, email, password, age, sex, height, weight } = userData;
+  const email = typeof userData.email === 'string' ? userData.email.trim().toLowerCase() : '';
+  const password = typeof userData.password === 'string' ? userData.password : '';
+
+  if (!EMAIL_PATTERN.test(email)) {
+    throw new Error('Informe um e-mail válido.');
+  }
+
+  if (password.length < 8) {
+    throw new Error('A senha deve ter pelo menos 8 caracteres.');
+  }
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
@@ -17,8 +22,9 @@ async function createUser(userData) {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
+  const { name, age, sex, height, weight } = userData;
 
-  const user = await prisma.user.create({
+  return prisma.user.create({
     data: {
       email,
       password: hashedPassword,
@@ -34,10 +40,6 @@ async function createUser(userData) {
       name: true,
     },
   });
-
-  return user;
 }
 
-module.exports = {
-  createUser
-};
+module.exports = { createUser };
